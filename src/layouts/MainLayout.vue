@@ -1,102 +1,63 @@
+<!-- MainLayout.vue -->
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+    <!-- Header Component -->
+    <NavbarComponent @tab-changed="handleTabChange" />
 
-        <q-toolbar-title>
-          Quasar App
-        </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
-
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
-    </q-drawer>
-
+    <!-- Main Content -->
     <q-page-container>
-      <router-view />
+      <q-page class="q-pa-md page-container">
+        <!-- Router View for different sections -->
+        <router-view />
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+<script>
+import NavbarComponent from 'components/NavbarComponent.vue'
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
+export default {
+  name: 'MainLayout',
+  components: {
+    NavbarComponent,
   },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
+  methods: {
+    handleTabChange(tab) {
+      // Navigate based on tab selection
+      if (tab === 'inicio') {
+        this.$router.push('/')
+      } else if (tab === 'configuracion') {
+        this.$router.push('/config')
+      } else if (tab === 'visualizacion') {
+        this.$router.push('/visualizacion')
+      }
+    },
   },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-]
-
-const leftDrawerOpen = ref(false)
-
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
+
+<style>
+@font-face {
+  font-family: 'Encode Sans';
+  src: url(/src/assets/fonts/EncodeSans.ttf);
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url(/src/assets/fonts/OpenSans.ttf);
+  font-weight: normal;
+  font-style: normal;
+}
+</style>
+
+<style scoped>
+.page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #c0c2b2;
+}
+</style>
