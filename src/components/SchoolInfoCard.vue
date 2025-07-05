@@ -2,10 +2,7 @@
   <q-card class="school-info-card q-pa-lg full-height-card">
     <h2 class="text-h4 text-weight-bold q-mb-md">Mi escuela</h2>
 
-    <p class="text-body1 q-mb-lg">
-      Y baila lento, flor morada, que me recuerdas a mi amada. Ella esta esperando en casa, y yo
-      muriendo por volver.
-    </p>
+    <p class="text-body1 q-mb-lg">Maneja toda la información relacionada a tu institución.</p>
 
     <!-- School Details -->
     <div class="school-details q-mb-xl">

@@ -1,21 +1,57 @@
+<script setup>
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+
+const emit = defineEmits(['agregar', 'editar', 'eliminar'])
+defineProps({
+  editarDisable: Boolean,
+  eliminarDisable: Boolean,
+})
+
+const route = useRoute()
+const textos = {
+  materias: { agregar: 'Agregar materia', editar: 'Editar materia', eliminar: 'Eliminar materia' },
+  docentes: { agregar: 'Agregar docente', editar: 'Editar docente', eliminar: 'Eliminar docente' },
+  grupos: { agregar: 'Agregar grupo', editar: 'Editar grupo', eliminar: 'Eliminar grupo' },
+  aulas: { agregar: 'Agregar aula', editar: 'Editar aula', eliminar: 'Eliminar aula' },
+}
+const configuracion = computed(() => route.path.split('/').at(-1))
+const labels = computed(() => textos[configuracion.value] || textos.materias)
+</script>
+
 <template>
   <q-card class="actions-card q-pa-lg text-center full-height-card">
     <h2 class="text-h4 text-weight-bold q-mt-none q-mb-md">Acciones</h2>
-    <!-- Action Buttons -->
     <div class="actions-buttons">
-      <q-btn class="actions-btn" color="accent" size="lg" label="Agregar materia" no-caps />
-      <q-btn class="actions-btn" color="secondary" size="lg" label="Editar materia" no-caps />
-      <q-btn class="actions-btn" color="negative" size="lg" label="Eliminar materia" no-caps />
+      <q-btn
+        class="actions-btn"
+        color="accent"
+        size="lg"
+        :label="labels.agregar"
+        @click="emit('agregar')"
+        no-caps
+      />
+      <q-btn
+        class="actions-btn"
+        color="secondary"
+        size="lg"
+        :label="labels.editar"
+        :disable="editarDisable"
+        @click="emit('editar')"
+        no-caps
+      />
+      <q-btn
+        class="actions-btn"
+        color="negative"
+        size="lg"
+        :label="labels.eliminar"
+        :disable="eliminarDisable"
+        @click="emit('eliminar')"
+        no-caps
+      />
     </div>
   </q-card>
 </template>
-
-<script>
-export default {
-  name: 'ActionCards',
-}
-</script>
-
 <style scoped>
 .full-height-card {
   flex: 1;

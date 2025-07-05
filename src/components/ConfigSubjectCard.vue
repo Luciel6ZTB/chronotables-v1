@@ -1,5 +1,16 @@
+<script setup>
+defineProps({
+  materias: Array,
+  selectedMateria: Object,
+})
+const emit = defineEmits(['select-materia'])
+</script>
+
 <template>
-  <q-card class="config-subjects-card q-pa-lg full-height-card">
+  <q-card
+    class="config-subjects-card q-pa-lg full-height-card"
+    @click="emit('select-materia', null)"
+  >
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de materias</h2>
     <p class="text-body1 q-mb-lg">Maneja las materias dentro de tu institución.</p>
 
@@ -27,8 +38,20 @@
       </div>
       <!--lista de entidad-->
       <div class="teachers-list-grid q-pa-md">
-        <div v-for="n in 10" :key="n" class="teacher-card">
-          {{ 'Materia ' + n }}
+        <div
+          v-for="materia in materias"
+          :key="materia.id"
+          class="teacher-card"
+          :class="{ selected: selectedMateria && selectedMateria.id === materia.id }"
+          @click.stop="
+            emit(
+              'select-materia',
+              selectedMateria && selectedMateria.id === materia.id ? null : materia,
+            )
+          "
+          style="cursor: pointer"
+        >
+          <div class="text-subtitle1">{{ materia.nombre }}</div>
         </div>
       </div>
     </div>
@@ -53,6 +76,8 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 590px;
+  max-height: 600px !important;
 }
 
 .config-subjects-card {
@@ -93,5 +118,13 @@ export default {
   padding: 16px 24px;
   font-size: 1rem;
   text-align: left;
+}
+.selected {
+  background: #e0e0e0;
+  border: 2px solid #1976d2;
+}
+.teacher-card.selected {
+  background: #f4eeb1;
+  border-color: #f4e437;
 }
 </style>

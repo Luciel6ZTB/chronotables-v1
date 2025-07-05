@@ -5,14 +5,18 @@
       <div class="text-h5 q-mr-md">Docente: Yves Ananías Flores Reyes</div>
       <div class="row q-gutter-sm">
         <q-input
-          v-model="docente"
+          v-model="search"
           outlined
           dense
-          class="q-mr-sm"
-          label="Buscar docente"
-          style="max-width: 260px"
-        />
-        <q-btn label="Ver resumen" color="yellow-8" class="q-ml-sm" />
+          placeholder="Buscar docente…"
+          class="subjects-filter-search q-mr-lg"
+          standout
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+        <q-btn label="Ver resumen" color="secondary" class="q-ml-sm" />
       </div>
     </div>
     <TablaHorarioIndividual />
@@ -20,7 +24,5 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import TablaHorarioIndividual from 'components/horarios/TablaHorarioIndividual.vue'
-const docente = ref('')
 </script>

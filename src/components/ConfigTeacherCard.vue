@@ -1,3 +1,10 @@
+<script setup>
+defineProps({
+  docentes: Array,
+  selectedDocente: Object,
+})
+const emit = defineEmits(['select-docente'])
+</script>
 <template>
   <q-card class="config-subjects-card q-pa-lg full-height-card">
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de docentes</h2>
@@ -22,13 +29,30 @@
           dense
           placeholder="Buscar docente…"
           class="subjects-filter-search q-mr-lg"
-          rounded
-        ></q-input>
+          standout
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
       </div>
       <!--lista de entidad-->
-      <div class="teachers-list-grid q-pa-md">
-        <div v-for="n in 10" :key="n" class="teacher-card">
-          {{ 'Mtro. Yves Ananías Flores Reyes' }}
+      <div class="teachers-list-grid q-pa-md" @click="emit('select-docente', null)">
+        <div
+          v-for="docente in docentes"
+          :key="docente.id"
+          class="teacher-card"
+          :class="{ selected: selectedDocente && selectedDocente.id === docente.id }"
+          @click.stop="
+            emit(
+              'select-docente',
+              selectedDocente && selectedDocente.id === docente.id ? null : docente,
+            )
+          "
+        >
+          <div class="text-subtitle1">
+            {{ docente.tituloPreferente }} {{ docente.nombreCompleto }}
+          </div>
         </div>
       </div>
     </div>
@@ -61,6 +85,7 @@ export default {
   box-shadow: none !important;
   border-left: 2px solid black;
   background-color: #fff;
+  min-height: 590px;
 }
 
 .subjects-container {
@@ -96,5 +121,13 @@ export default {
   padding: 16px 24px;
   font-size: 1rem;
   text-align: left;
+}
+.selected {
+  background: #e4dfac;
+  border: 2px solid #d5cb5c;
+}
+.teacher-card.selected {
+  background: #f4eeb1;
+  border-color: #f4e437;
 }
 </style>

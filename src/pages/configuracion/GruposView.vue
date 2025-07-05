@@ -1,24 +1,85 @@
+<script setup>
+import { ref } from 'vue'
+import ActionCards from 'components/ActionCards.vue'
+import ConfigGroupCard from 'components/ConfigGroupCard.vue'
+import ConfigFormGroup from 'components/forms/ConfigFormGroup.vue'
+import DeleteWarning from 'components/DeleteWarning.vue'
+
+const grupos = ref([
+  { id: 1, nombre: '201A' },
+  { id: 2, nombre: '202B' },
+  { id: 3, nombre: '403C' },
+])
+
+const selectedGrupo = ref(null)
+const showForm = ref(false)
+const editingGrupo = ref(null)
+const showDeleteWarning = ref(false)
+
+function onAgregar() {
+  editingGrupo.value = null
+  showForm.value = true
+}
+function onEditar() {
+  if (selectedGrupo.value) {
+    editingGrupo.value = { ...selectedGrupo.value }
+    showForm.value = true
+  }
+}
+function onEliminar() {
+  if (selectedGrupo.value) {
+    showDeleteWarning.value = true
+  }
+}
+function onGuardar(grupo) {
+  if (grupo.id) {
+    const idx = grupos.value.findIndex((g) => g.id === grupo.id)
+    if (idx >= 0) grupos.value[idx] = { ...grupo }
+  } else {
+    grupos.value.push({ ...grupo, id: Date.now() })
+  }
+  showForm.value = false
+  selectedGrupo.value = null
+}
+function onConfirmDelete() {
+  grupos.value = grupos.value.filter((g) => g.id !== selectedGrupo.value.id)
+  selectedGrupo.value = null
+  showDeleteWarning.value = false
+}
+</script>
 <template>
   <div>
     <div class="row">
       <!-- Sidebar: ActionCards, col-3 -->
       <div class="col-12 col-md-3">
-        <ActionCards />
+        <ActionCards
+          @agregar="onAgregar"
+          @editar="onEditar"
+          @eliminar="onEliminar"
+          :editar-disable="!selectedGrupo"
+          :eliminar-disable="!selectedGrupo"
+        />
       </div>
       <!-- Main: ConfigSubjectCard, col-9 -->
       <div class="col-12 col-md-9">
-        <ConfigGroupCard />
+        <ConfigGroupCard
+          :grupos="grupos"
+          :selected-grupo="selectedGrupo"
+          @select-grupo="selectedGrupo = $event"
+        />
       </div>
     </div>
+    <ConfigFormGroup
+      v-model="showForm"
+      :titulo="editingGrupo ? 'Editar grupo' : 'Agregar grupo'"
+      color="bg-accent"
+      :grupo="editingGrupo"
+      @guardar="onGuardar"
+    />
+    <DeleteWarning
+      v-model="showDeleteWarning"
+      :nombre="selectedGrupo?.nombre"
+      @confirm="onConfirmDelete"
+    />
   </div>
 </template>
-
-<script>
-import ActionCards from 'components/ActionCards.vue'
-import ConfigGroupCard from 'components/ConfigGroupCard.vue'
-
-export default {
-  name: 'GruposView',
-  components: { ActionCards, ConfigGroupCard },
-}
-</script>

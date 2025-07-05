@@ -1,3 +1,10 @@
+<script setup>
+defineProps({
+  aulas: Array,
+  selectedAula: Object,
+})
+const emit = defineEmits(['select-aula'])
+</script>
 <template>
   <q-card class="config-subjects-card q-pa-lg full-height-card">
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de Aulas</h2>
@@ -16,27 +23,38 @@
           class="subjects-pagination"
         />
         <!-- Filtro a la derecha -->
-        <q-select
-          v-model="selectedGrade"
-          :options="grades"
-          outlined
-          dense
-          class="subjects-filter-select"
-          dropdown-icon="arrow_drop_down"
-        />
-        <q-select
-          v-model="selectedGrade"
-          :options="grades"
-          outlined
-          dense
-          class="subjects-filter-select"
-          dropdown-icon="arrow_drop_down"
-        />
+        <div class="row">
+          <q-select
+            v-model="selectedGrade"
+            :options="grades"
+            outlined
+            dense
+            class="subjects-filter-select q-mr-sm"
+            dropdown-icon="arrow_drop_down"
+          />
+          <q-select
+            v-model="selectedGrade"
+            :options="grades"
+            outlined
+            dense
+            class="subjects-filter-select"
+            dropdown-icon="arrow_drop_down"
+          />
+        </div>
       </div>
       <!--lista de entidad-->
-      <div class="teachers-list-grid q-pa-md">
-        <div v-for="n in 10" :key="n" class="teacher-card">
-          {{ 'Materia ' + n }}
+      <div class="teachers-list-grid q-pa-md" @click="emit('select-aula', null)">
+        <div
+          v-for="aula in aulas"
+          :key="aula.id"
+          class="teacher-card"
+          :class="{ selected: selectedAula && selectedAula.id === aula.id }"
+          @click.stop="
+            emit('select-aula', selectedAula && selectedAula.id === aula.id ? null : aula)
+          "
+          style="cursor: pointer"
+        >
+          <div class="text-subtitle1">{{ aula.abreviatura }}</div>
         </div>
       </div>
     </div>
@@ -69,6 +87,7 @@ export default {
   box-shadow: none !important;
   border-left: 2px solid black;
   background-color: #fff;
+  min-height: 590px;
 }
 
 .subjects-container {
@@ -92,7 +111,6 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  min-height: 360px;
   overflow-y: auto;
 }
 .teacher-card {
@@ -102,5 +120,13 @@ export default {
   padding: 16px 24px;
   font-size: 1rem;
   text-align: left;
+}
+.selected {
+  background: #e0e0e0;
+  border: 2px solid #1976d2;
+}
+.teacher-card.selected {
+  background: #f4eeb1;
+  border-color: #f4e437;
 }
 </style>
