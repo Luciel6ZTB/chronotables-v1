@@ -1,4 +1,3 @@
-<!-- views/InicioView.vue -->
 <template>
   <div class="inicio-container">
     <div class="row full-height-row">
@@ -16,8 +15,8 @@
 </template>
 
 <script>
-import ChronotablesCard from '../components/ChronotablesCard.vue'
-import SchoolInfoCard from '../components/SchoolInfoCard.vue'
+import ChronotablesCard from 'components/ChronotablesCard.vue'
+import SchoolInfoCard from 'components/SchoolInfoCard.vue'
 
 export default {
   name: 'InicioView',

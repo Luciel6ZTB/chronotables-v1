@@ -1,9 +1,35 @@
 <script setup>
-defineProps({
+import { ref, computed } from 'vue'
+const props = defineProps({
   materias: Array,
   selectedMateria: Object,
 })
 const emit = defineEmits(['select-materia'])
+
+const selectedGrade = ref('Todos')
+const currentPage = ref(1)
+const itemsPerPage = 8
+
+// Opciones del filtro
+const grades = ['Todos', 'Primer', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto']
+
+// Materias filtradas por semestre
+const filteredMaterias = computed(() => {
+  if (selectedGrade.value === 'Todos') return props.materias
+  return props.materias.filter((materia) => materia.semestre === selectedGrade.value)
+})
+
+// Materias paginadas
+const paginatedMaterias = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredMaterias.value.slice(start, end)
+})
+
+// Total de páginas
+const totalPages = computed(() => {
+  return Math.ceil(filteredMaterias.value.length / itemsPerPage)
+})
 </script>
 
 <template>
@@ -18,15 +44,17 @@ const emit = defineEmits(['select-materia'])
       <div class="subjects-toolbar-row q-pb-md">
         <!-- Paginación a la izquierda -->
         <q-pagination
-          v-model="current"
-          max="5"
+          v-model="currentPage"
+          :max="totalPages"
+          :max-pages="6"
           direction-links
           flat
           color="grey"
           active-color="primary"
           class="subjects-pagination"
+          :disable="filteredMaterias.length <= itemsPerPage"
         />
-        <!-- Filtro a la derecha -->
+        <!-- Filtro por semestre -->
         <q-select
           v-model="selectedGrade"
           :options="grades"
@@ -34,12 +62,13 @@ const emit = defineEmits(['select-materia'])
           dense
           class="subjects-filter-select"
           dropdown-icon="arrow_drop_down"
+          label="Filtrar por semestre"
         />
       </div>
       <!--lista de entidad-->
       <div class="teachers-list-grid q-pa-md">
         <div
-          v-for="materia in materias"
+          v-for="materia in paginatedMaterias"
           :key="materia.id"
           class="teacher-card"
           :class="{ selected: selectedMateria && selectedMateria.id === materia.id }"
@@ -51,7 +80,14 @@ const emit = defineEmits(['select-materia'])
           "
           style="cursor: pointer"
         >
-          <div class="text-subtitle1">{{ materia.nombre }}</div>
+          <div class="text-subtitle1">{{ materia.clave }}</div>
+        </div>
+        <div
+          v-if="filteredMaterias.length === 0"
+          class="text-center q-pa-md text-grey"
+          style="min-width: 650px"
+        >
+          No se encontraron materias para este semestre
         </div>
       </div>
     </div>
@@ -61,13 +97,6 @@ const emit = defineEmits(['select-materia'])
 <script>
 export default {
   name: 'ConfigSubjectCard',
-  data() {
-    return {
-      selectedGrade: 'Segundo',
-      grades: ['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto'],
-      current: 1,
-    }
-  },
 }
 </script>
 
@@ -100,8 +129,9 @@ export default {
 }
 
 .subjects-filter-select {
-  min-width: 160px;
+  min-width: 200px;
   font-style: italic;
+  margin-right: 20px;
 }
 
 .teachers-list-grid {

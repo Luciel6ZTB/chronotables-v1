@@ -11,19 +11,18 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['update:modelValue', 'guardar'])
-
 const nombre = ref('')
-const abreviatura = ref('')
+const clave = ref('')
 
 watch(
   () => props.aula,
   (nueva) => {
     if (nueva) {
       nombre.value = nueva.nombre || ''
-      abreviatura.value = nueva.abreviatura || ''
+      clave.value = nueva.clave || ''
     } else {
       nombre.value = ''
-      abreviatura.value = ''
+      clave.value = ''
     }
   },
   { immediate: true },
@@ -41,7 +40,7 @@ function closeDialog() {
 function guardar() {
   emit('guardar', {
     nombre: nombre.value,
-    abreviatura: abreviatura.value,
+    clave: clave.value,
     id: props.aula?.id,
   })
   closeDialog()
@@ -56,17 +55,11 @@ function guardar() {
       </q-card-section>
       <q-card-section>
         <q-input v-model="nombre" label="Nombre del aula" />
-        <q-input v-model="abreviatura" label="Abreviatura" class="q-mt-md" />
+        <q-input v-model="clave" label="Clave" class="q-mt-md" />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
-        <q-btn
-          flat
-          label="Guardar"
-          color="primary"
-          @click="guardar"
-          :disable="!nombre || !abreviatura"
-        />
+        <q-btn flat label="Guardar" color="primary" @click="guardar" :disable="!nombre || !clave" />
       </q-card-actions>
     </q-card>
   </q-dialog>

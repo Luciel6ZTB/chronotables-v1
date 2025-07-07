@@ -1,9 +1,21 @@
 <script setup>
-defineProps({
+import { ref, computed } from 'vue'
+const props = defineProps({
   aulas: Array,
   selectedAula: Object,
 })
 const emit = defineEmits(['select-aula'])
+const currentPage = ref(1)
+const itemsPerPage = 8
+
+const paginatedAulas = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return props.aulas.slice(start, end)
+})
+const totalPages = computed(() => {
+  return Math.ceil(props.aulas.length / itemsPerPage)
+})
 </script>
 <template>
   <q-card class="config-subjects-card q-pa-lg full-height-card">
@@ -14,38 +26,20 @@ const emit = defineEmits(['select-aula'])
       <div class="subjects-toolbar-row">
         <!-- Paginación a la izquierda -->
         <q-pagination
-          v-model="current"
-          max="5"
+          v-model="currentPage"
+          :max="totalPages"
+          :max-pages="6"
           direction-links
           flat
           color="grey"
           active-color="primary"
           class="subjects-pagination"
         />
-        <!-- Filtro a la derecha -->
-        <div class="row">
-          <q-select
-            v-model="selectedGrade"
-            :options="grades"
-            outlined
-            dense
-            class="subjects-filter-select q-mr-sm"
-            dropdown-icon="arrow_drop_down"
-          />
-          <q-select
-            v-model="selectedGrade"
-            :options="grades"
-            outlined
-            dense
-            class="subjects-filter-select"
-            dropdown-icon="arrow_drop_down"
-          />
-        </div>
       </div>
       <!--lista de entidad-->
       <div class="teachers-list-grid q-pa-md" @click="emit('select-aula', null)">
         <div
-          v-for="aula in aulas"
+          v-for="aula in paginatedAulas"
           :key="aula.id"
           class="teacher-card"
           :class="{ selected: selectedAula && selectedAula.id === aula.id }"
@@ -54,7 +48,7 @@ const emit = defineEmits(['select-aula'])
           "
           style="cursor: pointer"
         >
-          <div class="text-subtitle1">{{ aula.abreviatura }}</div>
+          <div class="text-subtitle1">{{ aula.clave }}</div>
         </div>
       </div>
     </div>
@@ -64,13 +58,6 @@ const emit = defineEmits(['select-aula'])
 <script>
 export default {
   name: 'ConfigSubjectCard',
-  data() {
-    return {
-      selectedGrade: 'Segundo',
-      grades: ['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto'],
-      current: 1,
-    }
-  },
 }
 </script>
 

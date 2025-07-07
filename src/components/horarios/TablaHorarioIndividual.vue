@@ -245,7 +245,7 @@ function abrirDetalle(celda) {
   font-weight: bold;
 }
 .bloque-cell {
-  background: #a04419;
+  background-color: #858181;
   color: #fff;
   text-align: center;
   font-weight: bold;

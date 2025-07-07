@@ -3,83 +3,83 @@
     <q-table
       flat
       bordered
-      :rows="tableRows"
+      :rows="rows"
       :columns="columns"
-      row-key="rowId"
+      row-key="bloque"
       hide-bottom
-      :pagination="{ rowsPerPage: 0 }"
       class="horario-table"
       :style="{ maxWidth: '1050px', margin: '0 auto' }"
+      :pagination="{ rowsPerPage: 0 }"
     >
+      <!-- Encabezado personalizado -->
       <template #header="props">
         <q-tr :props="props">
-          <q-th class="bloque-header">BLOQUE</q-th>
+          <q-th class="bloque-header">TIEMPO</q-th>
           <q-th class="hora-header">HORA</q-th>
-          <q-th class="grupo-header">GRUPO</q-th>
-          <q-th v-for="dia in dias" :key="dia" class="dia-header">{{ dia }}</q-th>
+          <q-th v-for="dia in dias" :key="dia" class="dia-header">
+            {{ dia }}
+          </q-th>
         </q-tr>
       </template>
+      <!-- Fila -->
       <template #body="props">
-        <template v-if="props.row.receso">
-          <q-tr :props="props" class="receso-row">
-            <q-td colspan="100" class="receso-cell">RECESO</q-td>
-          </q-tr>
-        </template>
-        <template v-else>
-          <q-tr :props="props">
-            <!-- BLOQUE (rowspan solo en la primera fila del bloque) -->
+        <q-tr :props="props" :class="{ 'receso-row': props.row.receso }">
+          <q-td class="bloque-cell">
+            {{ props.row.bloque }}
+          </q-td>
+          <q-td
+            class="hora-cell"
+            :style="props.row.receso ? 'background:#6a4c2b;color:#fff' : ''"
+            >{{ props.row.hora }}</q-td
+          >
+          <template v-if="!props.row.receso">
             <q-td
-              v-if="props.row.isFirstGrupo"
-              class="bloque-cell"
-              :rowspan="props.row.rowspan"
-              style="vertical-align: middle; text-align: center"
+              v-for="(celda, colIdx) in props.row.clases"
+              :key="colIdx"
+              class="clase-cell"
+              @click.stop="abrirDetalle(celda)"
             >
-              {{ props.row.bloque }}
+              <q-tooltip
+                anchor="top middle"
+                class="bg-negative text-white"
+                transition-show="rotate"
+                transition-hide="rotate"
+              >
+                Conservación de la energía y sus interacciones
+              </q-tooltip>
+
+              <div class="clase-titulo">{{ celda.docente }}</div>
+              <div class="clase-materia">{{ celda.materia }}</div>
+              <div class="clase-aula">{{ celda.aula }}</div>
             </q-td>
-            <!-- HORA (rowspan solo en la primera fila del bloque) -->
-            <q-td
-              v-if="props.row.isFirstGrupo"
-              class="hora-cell"
-              :rowspan="props.row.rowspan"
-              style="vertical-align: middle; text-align: center"
-            >
-              {{ props.row.hora }}
+          </template>
+          <template v-else>
+            <q-td class="receso-cell" colspan="5">
+              RECESO
+              <q-tooltip> meow </q-tooltip>
             </q-td>
-            <!-- GRUPO -->
-            <q-td class="grupo-cell">
-              {{ props.row.grupo }}
-            </q-td>
-            <!-- MATERIAS -->
-            <q-td
-              v-for="(materia, idx) in props.row.materias"
-              :key="idx"
-              class="materia-cell"
-              @click.stop="abrirDetalle(props.row, idx)"
-            >
-              {{ materia.abreviatura }}
-            </q-td>
-          </q-tr>
-        </template>
+          </template>
+        </q-tr>
       </template>
     </q-table>
 
-    <!-- Dialogo de detalles -->
+    <!-- Dialog de detalles -->
     <q-dialog
-      v-model="dialogoDetalle"
+      v-model="drawer"
       persistent
       transition-show="slide-right"
       transition-hide="slide-left"
     >
       <q-card class="drawer-card">
         <div class="row items-center justify-between" style="width: 100%">
-          <div class="text-h6 q-mb-md">Detalle de Materia</div>
-          <q-btn icon="close" flat round dense @click="dialogoDetalle = false" />
+          <div class="text-h6 q-mb-md">Detalles de la celda</div>
+          <q-btn icon="close" flat round dense @click="drawer = false" />
         </div>
         <div v-if="detalle">
-          <div><b>Día:</b> {{ detalle.dia }}</div>
-          <div><b>Hora:</b> {{ detalle.hora }}</div>
           <div><b>Grupo:</b> {{ detalle.grupo }}</div>
-          <div><b>Materia:</b> {{ detalle.materiaCompleta }}</div>
+          <div><b>Materia:</b> {{ detalle.materia }}</div>
+          <div><b>Aula:</b> {{ detalle.aula }}</div>
+          <div><b>Docente:</b> {{ detalle.docente }}</div>
         </div>
         <q-btn icon="edit" color="primary" label="Editar" class="q-mt-lg" style="width: 100%" />
       </q-card>
@@ -88,272 +88,113 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
-// Días de la semana (puedes adaptar los nombres)
 const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
 
 const columns = [
-  { name: 'bloque', label: 'BLOQUE', align: 'center', field: 'bloque' },
-  { name: 'hora', label: 'HORA', align: 'center', field: 'hora' },
-  { name: 'grupo', label: 'GRUPO', align: 'center', field: 'grupo' },
-  ...dias.map((dia) => ({
-    name: dia.toLowerCase(),
-    label: dia,
-    align: 'center',
-    field: dia.toLowerCase(),
-  })),
+  { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
+  { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
+  { name: 'lunes', label: 'Lunes', align: 'center', field: 'lunes' },
+  { name: 'martes', label: 'Martes', align: 'center', field: 'martes' },
+  { name: 'miercoles', label: 'Miércoles', align: 'center', field: 'miercoles' },
+  { name: 'jueves', label: 'Jueves', align: 'center', field: 'jueves' },
+  { name: 'viernes', label: 'Viernes', align: 'center', field: 'viernes' },
 ]
 
-// Bloques del horario y recesos - esto se puede usar para cconstruccion de horario
-const bloques = [
-  { bloque: 1, hora: '7:00 a 7:50', grupos: ['201', '202', '203', '204', '205', '206'] },
+// 9 bloques, 1 receso (bloque 3)
+const rows = [
+  {
+    bloque: 1,
+    hora: '7:00 a 7:50',
+    clases: [
+      { grupo: '201A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
+      { grupo: '201B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
+      { grupo: '201C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
+      { grupo: '201D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '201E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
+    ],
+  },
   {
     bloque: 2,
     hora: '7:50 a 8:40',
-    grupos: ['201', '202', '203', '204', '205', '206'],
+    clases: [
+      { grupo: '202A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
+      { grupo: '202B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '202C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
+      { grupo: '202D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
+      { grupo: '202E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
+    ],
   },
-  { receso: true },
-  { bloque: 3, hora: '9:10 a 10:00', grupos: ['201', '202', '203', '204', '205', '206'] },
-  { bloque: 5, hora: '10:10 a 10:50', grupos: ['201', '202', '203', '204', '205', '206'] },
+  {
+    receso: true,
+    bloque: 3,
+    hora: '8:40 a 9:10',
+  },
+  {
+    bloque: 4,
+    hora: '9:10 a 10:00',
+    clases: [
+      { grupo: '203A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
+      { grupo: '203B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
+      { grupo: '203C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
+      { grupo: '203D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '203E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
+    ],
+  },
+  {
+    bloque: 5,
+    hora: '10:00 a 10:50',
+    clases: [
+      { grupo: '204A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
+      { grupo: '204B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '204C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
+      { grupo: '204D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
+      { grupo: '204E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
+    ],
+  },
+  {
+    bloque: 6,
+    hora: '10:50 a 11:40',
+    clases: [
+      { grupo: '205A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
+      { grupo: '205B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
+      { grupo: '205C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
+      { grupo: '205D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '205E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
+    ],
+  },
+  {
+    bloque: 7,
+    hora: '11:40 a 12:30',
+    clases: [
+      { grupo: '206A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
+      { grupo: '206B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '206C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
+      { grupo: '206D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
+      { grupo: '206E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
+    ],
+  },
+  {
+    bloque: 8,
+    hora: '12:30 a 13:20',
+    clases: [
+      { grupo: '207A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
+      { grupo: '207B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
+      { grupo: '207C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
+      { grupo: '207D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
+      { grupo: '207E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
+    ],
+  },
 ]
 
-// Materias por bloque/grupo/día
-// [bloqueIdx][grupoIdx][diaIdx] = { abreviatura, materiaCompleta }
-const materiasPorBloque = [
-  // BLOQUE 1 (6 grupos)
-  [
-    // grupo 201
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // grupo 202
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // ...otros grupos
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-  ],
-  // BLOQUE 2
-  [
-    // grupo 201
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // grupo 202
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // ...otros grupos
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-  ],
-  // BLOQUE 3 (receso, vacío)
-  [
-    // grupo 201
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // grupo 202
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // ...otros grupos
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-  ],
-  // BLOQUE 4 (3 grupos)
-  [
-    // grupo 201
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // grupo 202
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    // ...otros grupos
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-    [
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'LNGCOM', materiaCompleta: 'Lengua y Comunicación' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-      { abreviatura: 'MODPR', materiaCompleta: 'Modelado de Productos' },
-    ],
-  ],
-]
-
-const tableRows = computed(() => {
-  const result = []
-  let bloqueIdx = 0
-  bloques.forEach((bloque, idx) => {
-    if (bloque.receso) {
-      result.push({ receso: true, rowId: `receso-${idx}` })
-    } else {
-      const numGrupos = bloque.grupos.length
-      bloque.grupos.forEach((grupo, grupoIdx) => {
-        result.push({
-          bloque: bloque.bloque,
-          hora: bloque.hora,
-          grupo,
-          materias:
-            materiasPorBloque[bloqueIdx]?.[grupoIdx] ||
-            dias.map(() => ({ abreviatura: '', materiaCompleta: '' })),
-          isFirstGrupo: grupoIdx === 0,
-          rowspan: numGrupos,
-          rowId: `bloque${bloque.bloque}-grupo${grupo}`,
-        })
-      })
-      bloqueIdx++
-    }
-  })
-  return result
-})
-
-const dialogoDetalle = ref(false)
+const drawer = ref(false)
 const detalle = ref(null)
 
-function abrirDetalle(row, idxDia) {
-  if (!row || !row.materias) return
-  detalle.value = {
-    dia: dias[idxDia],
-    hora: row.hora,
-    grupo: row.grupo,
-    materiaCompleta: row.materias[idxDia]?.materiaCompleta ?? '',
-  }
-  dialogoDetalle.value = true
+function abrirDetalle(celda) {
+  if (!celda || !celda.materia) return
+  detalle.value = celda
+  drawer.value = true
 }
 </script>
 
@@ -362,85 +203,84 @@ function abrirDetalle(row, idxDia) {
   display: flex;
   justify-content: center;
   margin: 0 auto;
+  border-radius: 40px;
   max-width: 1050px;
 }
+
 .horario-table {
-  background: #b96d3e;
-  border: 2px solid #b96d3e;
-  min-width: 750px;
-  max-width: 950px;
+  background: #222;
+  border: 2px solid #222;
+  min-width: 790px;
+  max-width: 900px;
   width: 100%;
   box-shadow: 0 1px 6px #0001;
 }
 .bloque-header {
-  background: #d46b4b;
+  background: #6d6663;
   color: #fff;
   width: 54px;
   font-weight: bold;
   font-size: 1.02em;
 }
 .hora-header {
-  background: #e7c583;
+  background: #d8b172;
   color: #333;
   width: 92px;
   font-weight: bold;
 }
-.grupo-header {
-  background: #ffc98b;
-  color: #333;
-  font-weight: bold;
-}
 .dia-header {
-  background: #ffeeb2;
+  background: #c7a522;
   color: #222;
   font-weight: bold;
 }
 .bloque-cell {
-  background: #e07b5d;
+  background-color: #858181;
   color: #fff;
   text-align: center;
   font-weight: bold;
   font-size: 1.1em;
 }
 .hora-cell {
-  background: #ffe6b2;
+  background: #f9f3e9;
   color: #333;
   text-align: center;
   font-weight: bold;
 }
-.grupo-cell {
-  background: #fff2cc;
-  color: #222;
-  text-align: center;
-  font-weight: bold;
-}
-.materia-cell {
-  background: #fff9e6;
-  color: #a05d14;
+.clase-cell {
+  background: #fff;
   text-align: center;
   cursor: pointer;
-  min-width: 80px;
-  max-width: 110px;
-  border-bottom: 1px solid #e7c583;
-  padding: 6px 2px 4px 2px;
+  min-width: 100px;
+  max-width: 120px;
+  border-left: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 7px 2px 4px 2px;
   transition: background 0.18s;
-  font-weight: bold;
-  letter-spacing: 1px;
-  font-size: 0.96em;
 }
-.materia-cell:hover {
-  background: #f7e8c2;
+.clase-cell:hover {
+  background: #f3f3bf;
+}
+.clase-titulo {
+  font-weight: bold;
+  font-size: 1.05em;
+}
+.clase-materia {
+  font-size: 0.95em;
+}
+.clase-aula {
+  font-size: 0.93em;
+  color: #a08835;
 }
 .receso-row {
-  background: #e5e5e5;
+  background: #7c6c5b;
 }
 .receso-cell {
-  background: #91836d !important;
+  background: #7c6c5b !important;
   color: #fff;
   font-weight: bold;
   text-align: center;
   font-size: 1.1em;
-  border: none !important;
+  border-left: 1px solid #7c6c5b !important;
 }
 .drawer-card {
   width: 340px;

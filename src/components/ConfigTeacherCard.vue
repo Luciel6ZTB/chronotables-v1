@@ -1,34 +1,70 @@
 <script setup>
-defineProps({
+import { ref, computed, watch } from 'vue'
+const props = defineProps({
   docentes: Array,
   selectedDocente: Object,
 })
 const emit = defineEmits(['select-docente'])
+
+const searchQuery = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 8
+
+// Docentes filtrados por búsqueda
+const filteredDocentes = computed(() => {
+  if (!searchQuery.value) return props.docentes
+
+  const query = searchQuery.value.toLowerCase()
+  return props.docentes.filter(
+    (docente) =>
+      docente.nombre_completo.toLowerCase().includes(query) ||
+      (docente.nombre_corto && docente.nombre_corto.toLowerCase().includes(query)),
+  )
+})
+
+const paginatedDocentes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredDocentes.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredDocentes.value.length / itemsPerPage)
+})
+
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
 </script>
 <template>
-  <q-card class="config-subjects-card q-pa-lg full-height-card">
+  <q-card
+    class="config-subjects-card q-pa-lg full-height-card"
+    @click="emit('select-docente', null)"
+  >
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de docentes</h2>
     <p class="text-body1 q-mb-lg">Maneja los docentes dentro de tu institución.</p>
 
     <div class="subjects-container q-mb-xl">
       <div class="subjects-toolbar-row q-pb-md">
-        <!-- Paginación a la izquierda -->
         <q-pagination
-          v-model="current"
-          max="5"
+          v-model="currentPage"
+          :max="totalPages"
+          :max-pages="6"
           direction-links
           flat
           color="grey"
           active-color="primary"
-          class="subjects-pagination"
+          class="teachers-pagination"
+          :disable="filteredDocentes.length <= itemsPerPage"
         />
         <!-- Filtro a la derecha-->
         <q-input
-          v-model="search"
+          v-model="searchQuery"
           outlined
           dense
           placeholder="Buscar docente…"
           class="subjects-filter-search q-mr-lg"
+          style="min-width: 250px"
           standout
         >
           <template v-slot:prepend>
@@ -37,9 +73,9 @@ const emit = defineEmits(['select-docente'])
         </q-input>
       </div>
       <!--lista de entidad-->
-      <div class="teachers-list-grid q-pa-md" @click="emit('select-docente', null)">
+      <div class="teachers-list-grid q-pa-md">
         <div
-          v-for="docente in docentes"
+          v-for="docente in paginatedDocentes"
           :key="docente.id"
           class="teacher-card"
           :class="{ selected: selectedDocente && selectedDocente.id === docente.id }"
@@ -49,10 +85,16 @@ const emit = defineEmits(['select-docente'])
               selectedDocente && selectedDocente.id === docente.id ? null : docente,
             )
           "
+          style="cursor: pointer"
         >
-          <div class="text-subtitle1">
-            {{ docente.tituloPreferente }} {{ docente.nombreCompleto }}
-          </div>
+          <div class="text-subtitle1">{{ docente.nombre_corto }}</div>
+        </div>
+        <div
+          v-if="filteredDocentes.length === 0"
+          style="min-width: 650px"
+          class="text-center q-pa-md text-grey"
+        >
+          No se encontraron docentes
         </div>
       </div>
     </div>
@@ -61,14 +103,7 @@ const emit = defineEmits(['select-docente'])
 
 <script>
 export default {
-  name: 'ConfigSubjectCard',
-  data() {
-    return {
-      selectedGrade: 'Segundo',
-      grades: ['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto'],
-      current: 1,
-    }
-  },
+  name: 'ConfigTeacherCard',
 }
 </script>
 

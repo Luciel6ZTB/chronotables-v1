@@ -6,27 +6,28 @@ const props = defineProps({
   titulo: String,
   color: String,
   docente: {
-    // Puede ser null o un objeto para editar
     type: Object,
     default: null,
   },
 })
+
 const emit = defineEmits(['update:modelValue', 'guardar'])
 
-// Estado local del formulario
-const nombreCompleto = ref('')
-const tituloPreferente = ref('')
+const nombre_completo = ref('')
+const nombre_corto = ref('')
+const horas_semanales = ref('')
 
-// Cuando docente cambie, actualiza campos
 watch(
   () => props.docente,
-  (nuevo) => {
-    if (nuevo) {
-      nombreCompleto.value = nuevo.nombreCompleto || ''
-      tituloPreferente.value = nuevo.tituloPreferente || ''
+  (nueva) => {
+    if (nueva) {
+      nombre_corto.value = nueva.nombre_corto || ''
+      nombre_completo.value = nueva.nombre_completo || ''
+      horas_semanales.value = nueva.horas_semanales || ''
     } else {
-      nombreCompleto.value = ''
-      tituloPreferente.value = ''
+      nombre_corto.value = ''
+      nombre_completo.value = ''
+      horas_semanales.value = ''
     }
   },
   { immediate: true },
@@ -40,12 +41,12 @@ const dialogVisible = computed({
 function closeDialog() {
   dialogVisible.value = false
 }
-
 function guardar() {
   emit('guardar', {
-    nombreCompleto: nombreCompleto.value,
-    tituloPreferente: tituloPreferente.value,
+    nombre_completo: nombre_completo.value,
+    nombre_corto: nombre_corto.value,
     id: props.docente?.id, // Si es edición, pasa el id
+    horas_semanales: horas_semanales.value,
   })
   closeDialog()
 }
@@ -58,12 +59,13 @@ function guardar() {
         <div class="text-h6">{{ titulo }}</div>
       </q-card-section>
       <q-card-section>
-        <q-input v-model="nombreCompleto" label="Nombre completo" />
-        <q-input v-model="tituloPreferente" label="Título preferente" class="q-mt-md" />
+        <q-input v-model="nombre_completo" label="Nombre completo" />
+        <q-input v-model="nombre_corto" label="Abreviación" />
+        <q-input v-model="horas_semanales" label="Horas a la semana" />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
-        <q-btn flat label="Guardar" color="primary" @click="guardar" :disable="!nombreCompleto" />
+        <q-btn flat label="Guardar" color="primary" @click="guardar" :disable="!nombre_completo" />
       </q-card-actions>
     </q-card>
   </q-dialog>

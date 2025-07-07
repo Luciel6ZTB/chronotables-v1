@@ -6,7 +6,6 @@ const props = defineProps({
   titulo: String,
   color: String,
   materia: {
-    // Puede ser null o un objeto para editar
     type: Object,
     default: null,
   },
@@ -14,10 +13,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'guardar'])
 
-// Estado local del formulario
 const nombre = ref('')
 const clave = ref('')
-const descripcion = ref('')
+const horas_semana = ref('')
+const semestre = ref('')
 
 // Cuando materia cambie, actualiza campos (para editar)
 watch(
@@ -26,11 +25,13 @@ watch(
     if (nueva) {
       nombre.value = nueva.nombre || ''
       clave.value = nueva.clave || ''
-      descripcion.value = nueva.descripcion || ''
+      horas_semana.value = nueva.horas_semana || ''
+      semestre.value = nueva.semestre || ''
     } else {
       nombre.value = ''
       clave.value = ''
-      descripcion.value = ''
+      horas_semana.value = ''
+      semestre.value = ''
     }
   },
   { immediate: true },
@@ -49,8 +50,9 @@ function guardar() {
   emit('guardar', {
     nombre: nombre.value,
     clave: clave.value,
-    descripcion: descripcion.value,
     id: props.materia?.id, // Si es edición, pasa el id
+    horas_semana: horas_semana.value,
+    semestre: semestre.value,
   })
   closeDialog()
 }
@@ -65,7 +67,8 @@ function guardar() {
       <q-card-section>
         <q-input v-model="nombre" label="Nombre de la materia" />
         <q-input v-model="clave" label="Clave interna" class="q-mt-md" />
-        <q-input v-model="descripcion" label="Descripción" type="textarea" class="q-mt-md" />
+        <q-input v-model="horas_semana" label="Horas a la semana" class="q-mt-md" />
+        <q-input v-model="semestre" label="Semestre" class="q-mt-md" />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />

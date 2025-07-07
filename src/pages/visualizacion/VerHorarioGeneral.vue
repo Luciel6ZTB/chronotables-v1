@@ -2,7 +2,7 @@
 <template>
   <div class="q-pa-lg">
     <div class="row items-center justify-between q-mb-md">
-      <div class="text-h5">Horario: Segundo semestre</div>
+      <div class="text-h5">Horario General</div>
       <div class="row q-gutter-sm">
         <q-select
           v-model="semestre"

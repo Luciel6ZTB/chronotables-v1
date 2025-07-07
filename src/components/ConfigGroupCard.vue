@@ -1,12 +1,42 @@
 <script setup>
-defineProps({
+import { ref, computed } from 'vue'
+
+const props = defineProps({
   grupos: Array,
   selectedGrupo: Object,
 })
 const emit = defineEmits(['select-grupo'])
+
+const selectedShift = ref('Todos')
+const selectedGrade = ref('Todos')
+
+const currentPage = ref(1)
+const itemsPerPage = 8
+
+const grades = ['Todos', 'Primer', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto']
+const shifts = ['Todos', 'Matutino', 'Vespertino']
+
+const filteredGrupos = computed(() => {
+  return props.grupos.filter((grupo) => {
+    const matchGrade = selectedGrade.value === 'Todos' || grupo.semestre === selectedGrade.value
+    const matchShift = selectedShift.value === 'Todos' || grupo.turno === selectedShift.value
+    return matchGrade && matchShift
+  })
+})
+
+const paginatedGrupos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredGrupos.value.slice(start, end)
+})
+
+// Total de páginas
+const totalPages = computed(() => {
+  return Math.ceil(filteredGrupos.value.length / itemsPerPage)
+})
 </script>
 <template>
-  <q-card class="config-subjects-card q-pa-lg full-height-card">
+  <q-card class="config-subjects-card q-pa-lg full-height-card" @click="emit('select-grupo', null)">
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de grupos</h2>
     <p class="text-body1 q-mb-lg">Maneja las materias dentro de tu institución.</p>
 
@@ -14,13 +44,16 @@ const emit = defineEmits(['select-grupo'])
       <div class="subjects-toolbar-row">
         <!-- Paginación a la izquierda -->
         <q-pagination
-          v-model="current"
-          max="5"
+          v-model="currentPage"
+          :max="totalPages"
+          :max-pages="6"
           direction-links
           flat
           color="grey"
           active-color="primary"
           class="subjects-pagination"
+          :disable="filteredGrupos.length <= itemsPerPage"
+          style="min-width: 160px"
         />
         <!-- Filtro a la derecha -->
         <div class="row">
@@ -31,21 +64,24 @@ const emit = defineEmits(['select-grupo'])
             dense
             class="subjects-filter-select q-mr-sm"
             dropdown-icon="arrow_drop_down"
+            label="Filtrar por semestre"
+            style="min-width: 160px"
           />
           <q-select
-            v-model="selectedGrade"
-            :options="grades"
+            v-model="selectedShift"
+            :options="shifts"
             outlined
             dense
-            class="subjects-filter-select"
+            class="subjects-filter-select q-mr-lg"
             dropdown-icon="arrow_drop_down"
+            label="Filtrar por turno"
           />
         </div>
       </div>
       <!--lista de entidad-->
       <div class="teachers-list-grid q-pa-md" @click="emit('select-grupo', null)">
         <div
-          v-for="grupo in grupos"
+          v-for="grupo in paginatedGrupos"
           :key="grupo.id"
           class="teacher-card"
           :class="{ selected: selectedGrupo && selectedGrupo.id === grupo.id }"
@@ -56,6 +92,13 @@ const emit = defineEmits(['select-grupo'])
         >
           <div class="text-subtitle1">{{ grupo.nombre }}</div>
         </div>
+        <div
+          v-if="filteredGrupos.length === 0"
+          class="text-center q-pa-md text-grey"
+          style="min-width: 650px"
+        >
+          No se encontraron materias para este semestre
+        </div>
       </div>
     </div>
   </q-card>
@@ -64,13 +107,6 @@ const emit = defineEmits(['select-grupo'])
 <script>
 export default {
   name: 'ConfigSubjectCard',
-  data() {
-    return {
-      selectedGrade: 'Segundo',
-      grades: ['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto'],
-      current: 1,
-    }
-  },
 }
 </script>
 

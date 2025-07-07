@@ -2,7 +2,7 @@
 <template>
   <div class="q-pa-lg">
     <div class="row items-center justify-between q-mb-md">
-      <div class="text-h5 q-mr-md">Docente: Yves Ananías Flores Reyes</div>
+      <div class="text-h5 q-mr-md">Horario docente</div>
       <div class="row q-gutter-sm">
         <q-input
           v-model="search"

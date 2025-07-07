@@ -1,19 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { aulasMock } from 'src/mockups/index'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigRoomCard from 'components/ConfigRoomCard.vue'
 import ConfigFormRoom from 'components/forms/ConfigFormRoom.vue'
 import DeleteWarning from 'components/DeleteWarning.vue'
 
-const aulas = ref([
-  { id: 1, nombre: 'Laboratorio de Computación', abreviatura: 'LABCM' },
-  { id: 2, nombre: 'Aula Magna', abreviatura: 'AULA-MG' },
-])
-
+const aulas = ref([])
 const selectedAula = ref(null)
 const showForm = ref(false)
 const editingAula = ref(null)
 const showDeleteWarning = ref(false)
+
+onMounted(() => {
+  aulas.value = [...aulasMock]
+})
 
 function onAgregar() {
   editingAula.value = null
@@ -30,6 +31,11 @@ function onEliminar() {
     showDeleteWarning.value = true
   }
 }
+function onConfirmDelete() {
+  aulas.value = aulas.value.filter((a) => a.id !== selectedAula.value.id)
+  selectedAula.value = null
+  showDeleteWarning.value = false
+}
 function onGuardar(aula) {
   if (aula.id) {
     const idx = aulas.value.findIndex((a) => a.id === aula.id)
@@ -39,11 +45,6 @@ function onGuardar(aula) {
   }
   showForm.value = false
   selectedAula.value = null
-}
-function onConfirmDelete() {
-  aulas.value = aulas.value.filter((a) => a.id !== selectedAula.value.id)
-  selectedAula.value = null
-  showDeleteWarning.value = false
 }
 </script>
 <template>

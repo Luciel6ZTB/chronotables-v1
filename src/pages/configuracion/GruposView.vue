@@ -1,21 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { gruposMock } from 'src/mockups/index'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigGroupCard from 'components/ConfigGroupCard.vue'
 import ConfigFormGroup from 'components/forms/ConfigFormGroup.vue'
 import DeleteWarning from 'components/DeleteWarning.vue'
 
-const grupos = ref([
-  { id: 1, nombre: '201A' },
-  { id: 2, nombre: '202B' },
-  { id: 3, nombre: '403C' },
-])
-
+const grupos = ref([])
 const selectedGrupo = ref(null)
 const showForm = ref(false)
 const editingGrupo = ref(null)
 const showDeleteWarning = ref(false)
 
+onMounted(() => {
+  grupos.value = [...gruposMock]
+})
 function onAgregar() {
   editingGrupo.value = null
   showForm.value = true
@@ -31,6 +30,11 @@ function onEliminar() {
     showDeleteWarning.value = true
   }
 }
+function onConfirmDelete() {
+  grupos.value = grupos.value.filter((g) => g.id !== selectedGrupo.value.id)
+  selectedGrupo.value = null
+  showDeleteWarning.value = false
+}
 function onGuardar(grupo) {
   if (grupo.id) {
     const idx = grupos.value.findIndex((g) => g.id === grupo.id)
@@ -40,11 +44,6 @@ function onGuardar(grupo) {
   }
   showForm.value = false
   selectedGrupo.value = null
-}
-function onConfirmDelete() {
-  grupos.value = grupos.value.filter((g) => g.id !== selectedGrupo.value.id)
-  selectedGrupo.value = null
-  showDeleteWarning.value = false
 }
 </script>
 <template>
