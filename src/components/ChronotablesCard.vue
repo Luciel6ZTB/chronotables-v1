@@ -15,14 +15,6 @@
         no-caps
         @click="generateSchedule"
       />
-      <q-btn
-        class="chronotables-btn"
-        color="secondary"
-        size="lg"
-        label="Construir horario"
-        no-caps
-        @click="buildSchedule"
-      />
     </div>
   </q-card>
 </template>

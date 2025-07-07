@@ -105,8 +105,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 590px;
-  max-height: 600px !important;
+  min-height: 600px;
 }
 
 .config-subjects-card {
@@ -115,6 +114,7 @@ export default {
   box-shadow: none !important;
   border-left: 2px solid black;
   background-color: #fff;
+  min-height: 600px;
 }
 
 .subjects-container {

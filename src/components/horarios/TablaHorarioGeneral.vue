@@ -1,3 +1,37 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { todosHorarios } from 'src/mockups/index'
+const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
+
+const props = defineProps({
+  grupo: String,
+})
+
+const drawer = ref(false)
+const detalle = ref(null)
+
+function abrirDetalle(celda) {
+  if (!celda || !celda.materia) return
+  detalle.value = celda
+  drawer.value = true
+}
+
+const rows = computed(() => {
+  const horarioGrupo = todosHorarios.find((h) => h.grupo === props.grupo)
+  return horarioGrupo?.bloques || []
+})
+// Columnas base
+const columns = [
+  { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
+  { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
+  ...dias.map((d) => ({ name: d.toLowerCase(), label: d, align: 'center' })),
+]
+
+// Obtener clase por día
+function obtenerClasePorDia(clases, dia) {
+  return clases?.find((c) => c.dia === dia)
+}
+</script>
 <template>
   <div class="horario-table-outer">
     <q-table
@@ -34,30 +68,24 @@
           >
           <template v-if="!props.row.receso">
             <q-td
-              v-for="(celda, colIdx) in props.row.clases"
-              :key="colIdx"
+              v-for="dia in dias"
+              :key="dia"
               class="clase-cell"
-              @click.stop="abrirDetalle(celda)"
+              @click.stop="abrirDetalle(obtenerClasePorDia(props.row.clases, dia))"
             >
-              <q-tooltip
-                anchor="top middle"
-                class="bg-negative text-white"
-                transition-show="rotate"
-                transition-hide="rotate"
-              >
-                Conservación de la energía y sus interacciones
-              </q-tooltip>
-
-              <div class="clase-titulo">{{ celda.docente }}</div>
-              <div class="clase-materia">{{ celda.materia }}</div>
-              <div class="clase-aula">{{ celda.aula }}</div>
+              <template v-if="obtenerClasePorDia(props.row.clases, dia)">
+                <div class="clase-titulo">
+                  {{ obtenerClasePorDia(props.row.clases, dia).docente }}
+                </div>
+                <div class="clase-materia">
+                  {{ obtenerClasePorDia(props.row.clases, dia).materia }}
+                </div>
+                <div class="clase-aula">{{ obtenerClasePorDia(props.row.clases, dia).aula }}</div>
+              </template>
             </q-td>
           </template>
           <template v-else>
-            <q-td class="receso-cell" colspan="5">
-              RECESO
-              <q-tooltip> meow </q-tooltip>
-            </q-td>
+            <q-td class="receso-cell" colspan="5"> RECESO </q-td>
           </template>
         </q-tr>
       </template>
@@ -76,7 +104,6 @@
           <q-btn icon="close" flat round dense @click="drawer = false" />
         </div>
         <div v-if="detalle">
-          <div><b>Grupo:</b> {{ detalle.grupo }}</div>
           <div><b>Materia:</b> {{ detalle.materia }}</div>
           <div><b>Aula:</b> {{ detalle.aula }}</div>
           <div><b>Docente:</b> {{ detalle.docente }}</div>
@@ -86,117 +113,6 @@
     </q-dialog>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-
-const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
-
-const columns = [
-  { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
-  { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
-  { name: 'lunes', label: 'Lunes', align: 'center', field: 'lunes' },
-  { name: 'martes', label: 'Martes', align: 'center', field: 'martes' },
-  { name: 'miercoles', label: 'Miércoles', align: 'center', field: 'miercoles' },
-  { name: 'jueves', label: 'Jueves', align: 'center', field: 'jueves' },
-  { name: 'viernes', label: 'Viernes', align: 'center', field: 'viernes' },
-]
-
-// 9 bloques, 1 receso (bloque 3)
-const rows = [
-  {
-    bloque: 1,
-    hora: '7:00 a 7:50',
-    clases: [
-      { grupo: '201A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
-      { grupo: '201B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
-      { grupo: '201C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
-      { grupo: '201D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '201E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
-    ],
-  },
-  {
-    bloque: 2,
-    hora: '7:50 a 8:40',
-    clases: [
-      { grupo: '202A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
-      { grupo: '202B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '202C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
-      { grupo: '202D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
-      { grupo: '202E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
-    ],
-  },
-  {
-    receso: true,
-    bloque: 3,
-    hora: '8:40 a 9:10',
-  },
-  {
-    bloque: 4,
-    hora: '9:10 a 10:00',
-    clases: [
-      { grupo: '203A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
-      { grupo: '203B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
-      { grupo: '203C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
-      { grupo: '203D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '203E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
-    ],
-  },
-  {
-    bloque: 5,
-    hora: '10:00 a 10:50',
-    clases: [
-      { grupo: '204A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
-      { grupo: '204B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '204C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
-      { grupo: '204D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
-      { grupo: '204E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
-    ],
-  },
-  {
-    bloque: 6,
-    hora: '10:50 a 11:40',
-    clases: [
-      { grupo: '205A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
-      { grupo: '205B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
-      { grupo: '205C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
-      { grupo: '205D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '205E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
-    ],
-  },
-  {
-    bloque: 7,
-    hora: '11:40 a 12:30',
-    clases: [
-      { grupo: '206A', materia: 'INGLÉS', aula: 'Aula 4', docente: 'F. Smith' },
-      { grupo: '206B', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '206C', materia: 'FÍSICA', aula: 'Lab 3', docente: 'G. Díaz' },
-      { grupo: '206D', materia: 'ÉTICA', aula: 'Aula 5', docente: 'H. Soto' },
-      { grupo: '206E', materia: 'TECNOLOGÍA', aula: 'Aula 6', docente: 'I. Lara' },
-    ],
-  },
-  {
-    bloque: 8,
-    hora: '12:30 a 13:20',
-    clases: [
-      { grupo: '207A', materia: 'TEMS DE FLS', aula: 'Aula 1', docente: 'A. Martínez' },
-      { grupo: '207B', materia: 'MATEMÁTICAS', aula: 'Aula 2', docente: 'C. Torres' },
-      { grupo: '207C', materia: 'QUÍMICA', aula: 'Lab 1', docente: 'D. Pérez' },
-      { grupo: '207D', materia: 'BIOLOGÍA', aula: 'Lab 2', docente: 'B. López' },
-      { grupo: '207E', materia: 'HISTORIA', aula: 'Aula 3', docente: 'E. Ruiz' },
-    ],
-  },
-]
-
-const drawer = ref(false)
-const detalle = ref(null)
-
-function abrirDetalle(celda) {
-  if (!celda || !celda.materia) return
-  detalle.value = celda
-  drawer.value = true
-}
-</script>
 
 <style scoped>
 .horario-table-outer {

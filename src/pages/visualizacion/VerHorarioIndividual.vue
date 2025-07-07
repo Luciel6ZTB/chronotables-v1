@@ -1,8 +1,16 @@
-<!-- src/pages/VerHorarioIndividual.vue -->
+<script setup>
+import { ref } from 'vue'
+import TablaHorarioIndividual from 'components/horarios/TablaHorarioIndividual.vue'
+
+const docenteActivo = ref('')
+const search = ref('')
+</script>
 <template>
   <div class="q-pa-lg">
     <div class="row items-center justify-between q-mb-md">
-      <div class="text-h5 q-mr-md">Horario docente</div>
+      <div class="text-h5 q-mr-md">
+        Horario<span v-if="docenteActivo">: {{ docenteActivo }}</span>
+      </div>
       <div class="row q-gutter-sm">
         <q-input
           v-model="search"
@@ -16,13 +24,8 @@
             <q-icon name="search" />
           </template>
         </q-input>
-        <q-btn label="Ver resumen" color="secondary" class="q-ml-sm" />
       </div>
     </div>
-    <TablaHorarioIndividual />
+    <TablaHorarioIndividual :search="search" @docenteDetectado="(val) => (docenteActivo = val)" />
   </div>
 </template>
-
-<script setup>
-import TablaHorarioIndividual from 'components/horarios/TablaHorarioIndividual.vue'
-</script>
