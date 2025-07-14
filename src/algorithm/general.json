@@ -1,0 +1,19 @@
+{
+  "bloques_matutino": 8,
+  "bloques_vespertino": 7,
+  "bloque_inicio_vespertino": 81,
+  "bloque_fin_matutino": 8,
+  "recesos": {
+    "matutino": [
+      2
+    ],
+    "vespertino": [
+      1,
+      2
+    ]
+  },
+  "horarios": {
+    "matutino": [],
+    "vespertino": []
+  }
+}

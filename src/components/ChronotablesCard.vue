@@ -1,49 +1,47 @@
-<!-- components/ChronotablesCard.vue -->
 <template>
   <q-card class="chronotables-card q-pa-lg text-center full-height-card">
     <q-img class="logo-img" src="~assets/logos/logo1.png" style="height: 150px" />
 
     <h2 class="text-h4 text-weight-bold q-mt-md q-mb-lg">CHRONOTABLES</h2>
 
-    <!-- Action Buttons -->
     <div class="chronotables-buttons">
       <q-btn
         class="chronotables-btn q-mb-sm"
         color="primary"
         size="lg"
         label="Generar horario"
+        no-cap
+      />
+      <q-btn
+        class="chronotables-btn q-mb-sm"
+        color="secondary"
+        size="lg"
+        label="Construir horario"
         no-caps
-        @click="generateSchedule"
+        @click="openBuilder"
       />
     </div>
   </q-card>
+  <ScheduleBuilderDialog v-model="builderDialog" />
 </template>
+<script setup>
+import { ref } from 'vue'
+import { useQuasar } from 'quasar'
+import ScheduleBuilderDialog from './scheduleBuilder/SchedulerBuilderDialog.vue'
+const $q = useQuasar()
+const builderDialog = ref(false)
 
-<script>
-import { useRouter } from 'vue-router'
-
-export default {
-  name: 'ChronotablesCard',
-  setup() {
-    const router = useRouter()
-
-    const generateSchedule = () => {
-      console.log('Generar horario')
-      // Navigate to schedule generation route
-      router.push('/generar-horario')
-    }
-
-    const buildSchedule = () => {
-      console.log('Construir horario')
-      // Navigate to schedule builder route
-      router.push('/construir-horario')
-    }
-
-    return {
-      generateSchedule,
-      buildSchedule,
-    }
-  },
+const openBuilder = () => {
+  try {
+    builderDialog.value = true
+  } catch (error) {
+    console.error('Error al abrir constructor:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'No se pudo abrir el constructor de horarios',
+      icon: 'error',
+    })
+  }
 }
 </script>
 
