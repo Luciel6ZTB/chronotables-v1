@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb'
 
+//cambiar el nombre de la base de datos
 const uri = 'mongodb://localhost:27017'
 const dbName = 'timetables_system'
 
