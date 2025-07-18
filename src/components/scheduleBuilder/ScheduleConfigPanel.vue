@@ -106,8 +106,10 @@
 </template>
 
 <script setup>
+import { useQuasar } from 'quasar'
 import { ref, watch } from 'vue'
 import { useScheduleBuilder } from '../scheduleBuilder/useScheduleBuilder'
+const $q = useQuasar()
 
 const emit = defineEmits(['configuration-saved'])
 const saving = ref(false)
@@ -134,7 +136,11 @@ const saveConfig = async () => {
   try {
     const success = await saveConfiguration()
     if (success) {
-      console.log('Configuración guardada correctamente')
+      $q.notify({
+        type: 'positive',
+        message: 'Horarios actualizados',
+        timeout: 1000,
+      })
       forceUpdate()
     }
   } finally {

@@ -1,3 +1,6 @@
+// TODO: Cambiar semestre a int
+// TODO: Ver como generar horario por reactivo matu/vesp
+
 export const gruposMock = [
   {
     id: 1,

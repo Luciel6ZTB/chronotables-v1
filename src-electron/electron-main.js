@@ -3,6 +3,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
+import { obtenerGrupos } from './mongo/gruposController.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -139,6 +140,11 @@ ipcMain.handle('write-config-file', (_, config) => {
     console.error('Error writing config file:', error)
     return false
   }
+})
+
+// grupos cargar
+ipcMain.handle('get-grupos', async () => {
+  return await obtenerGrupos()
 })
 
 app.whenReady().then(createWindow)

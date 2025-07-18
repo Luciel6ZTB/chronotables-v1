@@ -35,7 +35,7 @@ export function useScheduleBuilder(emit) {
       vespertino: [],
     },
   })
-
+  /*
   const safeClone = (obj) => {
     try {
       return JSON.parse(JSON.stringify(obj))
@@ -44,6 +44,7 @@ export function useScheduleBuilder(emit) {
       return getDefaultConfig()
     }
   }
+ */
 
   const readConfig = async () => {
     try {
@@ -134,6 +135,11 @@ export function useScheduleBuilder(emit) {
     }))
   })
 
+  const horarios = computed(() => ({
+    matutino: config.value.matutino.horarios,
+    vespertino: config.value.vespertino.horarios,
+  }))
+
   const switchTurn = (newTurn) => {
     currentTurn.value = newTurn
     turnChanged.value = !turnChanged.value
@@ -193,9 +199,13 @@ export function useScheduleBuilder(emit) {
     schedulePreview.value = bloques
   }
 
-  const getHorarioForBlock = (bloque, tipo) =>
-    config.value[currentTurn.value].horarios.find((h) => h.bloque === bloque && h.tipo === tipo)
-      ?.horario || ''
+  function getHorarioForBlock(bloque, tipo) {
+    const bloqueKey = tipo === 'receso' ? 'R' : bloque
+    return (
+      horarios.value[currentTurn.value]?.find((h) => h.bloque === bloqueKey && h.tipo === tipo)
+        ?.horario || ''
+    )
+  }
 
   const updateScheduleData = () => {
     config.value[currentTurn.value].horarios = schedulePreview.value
@@ -209,20 +219,24 @@ export function useScheduleBuilder(emit) {
 
   const saveConfiguration = async () => {
     updateScheduleData()
-    const full = {
-      bloques_matutino: config.value.matutino.bloques,
-      bloques_vespertino: config.value.vespertino.bloques,
-      bloque_inicio_vespertino: config.value.matutino.bloques + 1,
-      bloque_fin_matutino: config.value.matutino.bloques,
-      recesos: {
-        matutino: [...config.value.matutino.recesos.posiciones],
-        vespertino: [...config.value.vespertino.recesos.posiciones],
-      },
-      horarios: {
-        matutino: [...config.value.matutino.horarios],
-        vespertino: [...config.value.vespertino.horarios],
-      },
-    }
+    console.log('Clon matutino:', config.value.matutino)
+
+    const full = JSON.parse(
+      JSON.stringify({
+        bloques_matutino: config.value.matutino.bloques,
+        bloques_vespertino: config.value.vespertino.bloques,
+        bloque_inicio_vespertino: config.value.matutino.bloques + 1,
+        bloque_fin_matutino: config.value.matutino.bloques,
+        recesos: {
+          matutino: [...config.value.matutino.recesos.posiciones],
+          vespertino: [...config.value.vespertino.recesos.posiciones],
+        },
+        horarios: {
+          matutino: [...config.value.matutino.horarios],
+          vespertino: [...config.value.vespertino.horarios],
+        },
+      }),
+    )
 
     const success = await writeConfig(full)
     if (success && emit) emit('configuration-saved', full)
@@ -255,7 +269,6 @@ export function useScheduleBuilder(emit) {
     updateScheduleDisplay,
     updateScheduleData,
     saveConfiguration,
-    safeClone,
     switchTurn,
     getCurrentTurn: () => currentTurn.value,
     getSchedulePreview: () => schedulePreview.value,

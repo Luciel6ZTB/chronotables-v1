@@ -16,7 +16,7 @@ function abrirDetalle(celda) {
   drawer.value = true
 }
 const horariosFiltrados = computed(() => {
-  if (!props.search || props.search.trim() === '') return [] // <--- aquí
+  if (!props.search || props.search.trim() === '') return []
   const searchLower = props.search.toLowerCase()
   return horariosIndividuales.filter((horario) =>
     horario.docente?.toLowerCase().includes(searchLower),
@@ -25,8 +25,7 @@ const horariosFiltrados = computed(() => {
 const rows = computed(() => {
   if (horariosFiltrados.value.length === 0) return []
 
-  const bloques = horariosFiltrados.value[0].bloques // Solo mostramos el primero encontrado
-
+  const bloques = horariosFiltrados.value[0].bloques
   return bloques.map((bloque) => {
     if (bloque.receso) return bloque
 

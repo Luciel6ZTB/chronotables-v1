@@ -13,13 +13,25 @@ const selectedGrade = ref('Todos')
 const currentPage = ref(1)
 const itemsPerPage = 8
 
-const grades = ['Todos', 'Primer', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto']
+const grades = ['Todos', 'Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto']
+const gradeToNumber = {
+  Primero: 1,
+  Segundo: 2,
+  Tercero: 3,
+  Cuarto: 4,
+  Quinto: 5,
+  Sexto: 6,
+}
+
 const shifts = ['Todos', 'Matutino', 'Vespertino']
 
 const filteredGrupos = computed(() => {
   return props.grupos.filter((grupo) => {
-    const matchGrade = selectedGrade.value === 'Todos' || grupo.semestre === selectedGrade.value
+    const matchGrade =
+      selectedGrade.value === 'Todos' || grupo.semestre === gradeToNumber[selectedGrade.value]
+
     const matchShift = selectedShift.value === 'Todos' || grupo.turno === selectedShift.value
+
     return matchGrade && matchShift
   })
 })

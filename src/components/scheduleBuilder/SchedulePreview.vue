@@ -74,11 +74,9 @@ import { useScheduleBuilder } from '../scheduleBuilder/useScheduleBuilder'
 
 const $q = useQuasar()
 
-// Usa UNA sola instancia
 const { currentTurn, schedulePreview, scheduleColumns, updateScheduleData, forceUpdate } =
   useScheduleBuilder()
 
-// Reacción al cambio de turno
 watch(currentTurn, () => {
   forceUpdate()
 })
@@ -86,11 +84,13 @@ watch(currentTurn, () => {
 const handleScheduleUpdate = () => {
   try {
     updateScheduleData()
+    /*
     $q.notify({
       type: 'positive',
       message: 'Horarios actualizados',
       timeout: 1000,
     })
+    */
   } catch {
     $q.notify({
       type: 'negative',
