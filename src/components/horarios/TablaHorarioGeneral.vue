@@ -1,33 +1,59 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { todosHorarios } from 'src/mockups/index'
+import { ref, computed, watch } from 'vue'
+import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
 const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
-
+//esto es pq props por estandar quiere un string pero con los grupo mando
+// un objeto pq se ocupa el turno y id, es decir, se devuelven vrias cosas
 const props = defineProps({
-  grupo: String,
+  grupo: {
+    type: Object,
+    required: true,
+  },
 })
 
 const drawer = ref(false)
 const detalle = ref(null)
+const { horarioEstructura, cargarHorarioDesdeConfig } = readHorarioBuilder()
+//cambiar de OnMounted a watch pq cambia cada vez que se elige un elemento de dropdown
+watch(
+  () => props.grupo,
+  (nuevoGrupo) => {
+    if (nuevoGrupo?.turno) {
+      cargarHorarioDesdeConfig(nuevoGrupo.turno)
+    }
+  },
+  { immediate: true }, // Para que se cargue también al montar por primera vez
+)
 
 function abrirDetalle(celda) {
   if (!celda || !celda.materia) return
   detalle.value = celda
   drawer.value = true
 }
-
+//filas ya no se calcula pq ya no dependen del mockup de horario, si no del archivo de json.
 const rows = computed(() => {
-  const horarioGrupo = todosHorarios.find((h) => h.grupo === props.grupo)
-  return horarioGrupo?.bloques || []
+  return horarioEstructura.value.map((bloque) => {
+    return {
+      bloque: bloque.numero,
+      hora: bloque.horario,
+      receso: bloque.tipo === 'receso',
+      //REEMPLAZAR CUANDO YA SE TENGA ALGORITMO CLARO
+      clases: dias.map((dia) => ({
+        dia,
+        docente: 'Docente X', // info falsa temporal
+        materia: 'Materia Y',
+        aula: 'Aula Z',
+      })),
+    }
+  })
 })
-// Columnas base
+
 const columns = [
   { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
   { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
   ...dias.map((d) => ({ name: d.toLowerCase(), label: d, align: 'center' })),
 ]
 
-// Obtener clase por día
 function obtenerClasePorDia(clases, dia) {
   return clases?.find((c) => c.dia === dia)
 }
@@ -122,7 +148,6 @@ function obtenerClasePorDia(clases, dia) {
   border-radius: 40px;
   max-width: 1050px;
 }
-
 .horario-table {
   background: #222;
   border: 2px solid #222;
@@ -207,10 +232,5 @@ function obtenerClasePorDia(clases, dia) {
   background: #fff;
   box-shadow: 0 3px 24px #0003;
   padding: 20px;
-}
-@media (max-width: 1050px) {
-  .horario-table {
-    min-width: 600px;
-  }
 }
 </style>

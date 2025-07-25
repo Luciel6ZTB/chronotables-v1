@@ -1,61 +1,57 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { horariosIndividuales } from 'src/mockups/index'
+import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
+const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
 
 const props = defineProps({
-  search: String,
+  docente: {
+    type: Object,
+    required: true,
+  },
 })
 
-const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
 const drawer = ref(false)
 const detalle = ref(null)
+const { horarioEstructura, cargarHorarioCompleto } = readHorarioBuilder()
+
+watch(
+  () => props.docente,
+  (nuevoDocente) => {
+    if (nuevoDocente) {
+      cargarHorarioCompleto()
+    }
+  },
+  { immediate: true },
+)
+
+const rows = computed(() => {
+  return horarioEstructura.value.map((bloque) => {
+    return {
+      bloque: bloque.numero,
+      hora: bloque.horario,
+      receso: bloque.tipo === 'receso',
+      //REEMPLAZAR CUANDO YA SE TENGA ALGORITMO CLARO
+      clases: dias.map((dia) => ({
+        dia,
+        grupo: '101A', // info falsa temporal
+        clave: 'Nombre de materia',
+        aula: 'Aula 5',
+      })),
+    }
+  })
+})
+
+const columns = [
+  { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
+  { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
+  ...dias.map((d) => ({ name: d.toLowerCase(), label: d, align: 'center' })),
+]
 
 function abrirDetalle(celda) {
   if (!celda || !celda.clave) return
   detalle.value = celda
   drawer.value = true
 }
-const horariosFiltrados = computed(() => {
-  if (!props.search || props.search.trim() === '') return []
-  const searchLower = props.search.toLowerCase()
-  return horariosIndividuales.filter((horario) =>
-    horario.docente?.toLowerCase().includes(searchLower),
-  )
-})
-const rows = computed(() => {
-  if (horariosFiltrados.value.length === 0) return []
-
-  const bloques = horariosFiltrados.value[0].bloques
-  return bloques.map((bloque) => {
-    if (bloque.receso) return bloque
-
-    const clasesPorDia = dias.map((dia) => bloque.clases?.find((c) => c.dia === dia) || {})
-    return {
-      bloque: bloque.bloque,
-      hora: bloque.hora,
-      clases: clasesPorDia,
-    }
-  })
-})
-const columns = [
-  { name: 'bloque', label: 'TIEMPO', align: 'center', field: 'bloque' },
-  { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
-  ...dias.map((dia) => ({
-    name: dia.toLowerCase(),
-    label: dia.charAt(0) + dia.slice(1).toLowerCase(),
-    align: 'center',
-    field: dia.toLowerCase(),
-  })),
-]
-const emit = defineEmits(['docenteDetectado'])
-
-watch(horariosFiltrados, (nuevosHorarios) => {
-  if (nuevosHorarios.length > 0) {
-    emit('docenteDetectado', nuevosHorarios[0].docente)
-  } else {
-    emit('docenteDetectado', null)
-  }
-})
 </script>
 <template>
   <div class="horario-table-outer">
@@ -104,10 +100,7 @@ watch(horariosFiltrados, (nuevosHorarios) => {
             </q-td>
           </template>
           <template v-else>
-            <q-td class="receso-cell" colspan="5">
-              RECESO
-              <q-tooltip> meow </q-tooltip>
-            </q-td>
+            <q-td class="receso-cell" colspan="5"> RECESO </q-td>
           </template>
         </q-tr>
       </template>
@@ -126,13 +119,11 @@ watch(horariosFiltrados, (nuevosHorarios) => {
           <q-btn icon="close" flat round dense @click="drawer = false" />
         </div>
         <div v-if="detalle">
+          <!--TODO: Aumentar el tamaño de font, buscar clase-->
           <div class="q-mb-sm"><b>Grupo:</b> {{ detalle.grupo }}</div>
-          <div class="q-mb-sm"><b>Materia:</b> {{ detalle.materia }}</div>
-          <div class="q-mb-sm"><b>Semestre:</b> {{ detalle.semestre }}</div>
+          <div class="q-mb-sm"><b>Materia:</b> {{ detalle.clave }}</div>
+          <div class="q-mb-sm"><b>Aula:</b> {{ detalle.aula }}</div>
         </div>
-        <!--
-        <q-btn icon="close" color="primary" label="Cerrar" class="q-mt-lg" style="width: 100%" />
-        -->
       </q-card>
     </q-dialog>
   </div>
@@ -144,7 +135,7 @@ watch(horariosFiltrados, (nuevosHorarios) => {
   justify-content: center;
   margin: 0 auto;
   border-radius: 40px;
-  max-width: 1050px;
+  max-width: 1100px;
 }
 
 .horario-table {

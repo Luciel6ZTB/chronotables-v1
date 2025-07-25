@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import TablaHorarioGeneral from 'components/horarios/TablaHorarioGeneral.vue'
-const grupoSeleccionado = ref('201A')
-
-const gruposDisponibles = ['201A', '202B', '203C', '204D', '402B']
+import { gruposMock } from 'src/mockups/index'
+const gruposDisponibles = gruposMock
+const grupoSeleccionado = ref(null)
 </script>
 <template>
   <div class="q-pa-lg">
@@ -13,15 +13,23 @@ const gruposDisponibles = ['201A', '202B', '203C', '204D', '402B']
         <q-select
           v-model="grupoSeleccionado"
           :options="gruposDisponibles"
+          option-label="nombre"
+          option-value="id"
+          :emit-value="false"
+          map-options
           dense
           outlined
-          class="q-mr-sm filtro-select"
+          class="q-mr-sm"
           label="Grupo"
           style="min-width: 120px"
         />
       </div>
     </div>
-    <TablaHorarioGeneral :grupo="grupoSeleccionado" />
+
+    <TablaHorarioGeneral v-if="grupoSeleccionado" :grupo="grupoSeleccionado" />
+    <div v-else class="q-mt-xl text-center text-subtitle1 text-grey-7">
+      Elige un grupo para visualizar su horario.
+    </div>
   </div>
 </template>
 

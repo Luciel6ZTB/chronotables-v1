@@ -85,7 +85,7 @@
         <div class="text-caption">
           • Matutino: {{ config.matutino.bloques }} bloques<br />
           • Vespertino: {{ config.vespertino.bloques }} bloques<br />
-          • Inicio vespertino: bloque {{ Number(config.matutino.bloques) + 1 }}<br />
+          • Inicio vespertino: bloque {{ Number(config.matutino.bloques) }}<br />
           • Fin matutino: bloque {{ config.matutino.bloques }}
         </div>
       </q-card>

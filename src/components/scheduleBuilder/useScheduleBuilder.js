@@ -35,16 +35,6 @@ export function useScheduleBuilder(emit) {
       vespertino: [],
     },
   })
-  /*
-  const safeClone = (obj) => {
-    try {
-      return JSON.parse(JSON.stringify(obj))
-    } catch (error) {
-      console.error('Error cloning object:', error)
-      return getDefaultConfig()
-    }
-  }
- */
 
   const readConfig = async () => {
     try {
@@ -89,9 +79,12 @@ export function useScheduleBuilder(emit) {
     }
   }
 
-  const initializeState = (saved) => {
-    const data = saved || getDefaultConfig()
+  const initializeState = (data) => {
     return {
+      bloques_matutino: Number(data.bloques_matutino),
+      bloques_vespertino: Number(data.bloques_vespertino),
+      bloque_inicio_vespertino: Number(data.bloque_inicio_vespertino),
+      bloque_fin_matutino: Number(data.bloque_fin_matutino),
       matutino: {
         bloques: Number(data.bloques_matutino),
         recesos: {
@@ -128,11 +121,23 @@ export function useScheduleBuilder(emit) {
   ]
 
   const recesoOptions = computed(() => {
-    const bloques = config.value[currentTurn.value]?.bloques || 1
-    return Array.from({ length: bloques - 1 }, (_, i) => ({
-      label: `Bloque ${i + 1}`,
-      value: i + 1,
-    }))
+    const turn = currentTurn.value
+    const bloques = config.value[turn]?.bloques || 1
+
+    let inicio = 1
+    if (turn === 'vespertino') {
+      inicio = Number(config.value.bloque_inicio_vespertino) || 1
+    } else if (turn === 'matutino') {
+      inicio = Number(config.value.bloque_inicio_matutino) || 1
+    }
+
+    return Array.from({ length: bloques - 1 }, (_, i) => {
+      const bloqueNum = inicio + i
+      return {
+        label: `Bloque ${bloqueNum}`,
+        value: bloqueNum,
+      }
+    })
   })
 
   const horarios = computed(() => ({
@@ -149,10 +154,15 @@ export function useScheduleBuilder(emit) {
   const updateBlocks = () => {
     const bloqueData = config.value[currentTurn.value]
     const maxRecesos = Math.max(0, bloqueData.bloques - 1)
+
     bloqueData.recesos.cantidad = Math.min(bloqueData.recesos.cantidad, maxRecesos)
     bloqueData.recesos.posiciones = bloqueData.recesos.posiciones
       .filter((p) => p < bloqueData.bloques)
       .slice(0, bloqueData.recesos.cantidad)
+
+    if (currentTurn.value === 'matutino') {
+      config.value.bloque_inicio_vespertino = bloqueData.bloques
+    }
     updateScheduleDisplay()
   }
 
@@ -173,9 +183,17 @@ export function useScheduleBuilder(emit) {
     const bloqueData = config.value[currentTurn.value]
     const recesos = [...bloqueData.recesos.posiciones].sort((a, b) => a - b)
     const bloques = []
-    let i = 1
 
-    while (i <= bloqueData.bloques) {
+    let i = 1
+    if (currentTurn.value === 'vespertino') {
+      i = Number(config.value.bloque_inicio_vespertino) || 1
+      console.log(config.value.bloque_inicio_vespertino)
+    }
+
+    const totalBloques = bloqueData.bloques
+
+    let count = 0
+    while (count < totalBloques) {
       bloques.push({
         id: `${currentTurn.value}-${i}-clase`,
         numero: i,
@@ -194,6 +212,7 @@ export function useScheduleBuilder(emit) {
       }
 
       i++
+      count++
     }
 
     schedulePreview.value = bloques
@@ -219,13 +238,12 @@ export function useScheduleBuilder(emit) {
 
   const saveConfiguration = async () => {
     updateScheduleData()
-    console.log('Clon matutino:', config.value.matutino)
 
     const full = JSON.parse(
       JSON.stringify({
         bloques_matutino: config.value.matutino.bloques,
         bloques_vespertino: config.value.vespertino.bloques,
-        bloque_inicio_vespertino: config.value.matutino.bloques + 1,
+        bloque_inicio_vespertino: config.value.bloque_inicio_vespertino,
         bloque_fin_matutino: config.value.matutino.bloques,
         recesos: {
           matutino: [...config.value.matutino.recesos.posiciones],

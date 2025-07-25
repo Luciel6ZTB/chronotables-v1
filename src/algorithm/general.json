@@ -1,14 +1,14 @@
 {
   "bloques_matutino": 8,
-  "bloques_vespertino": 8,
-  "bloque_inicio_vespertino": 9,
+  "bloques_vespertino": 7,
+  "bloque_inicio_vespertino": 8,
   "bloque_fin_matutino": 8,
   "recesos": {
     "matutino": [
       2
     ],
     "vespertino": [
-      3
+      10
     ]
   },
   "horarios": {
@@ -61,49 +61,44 @@
     ],
     "vespertino": [
       {
-        "bloque": 1,
+        "bloque": 8,
         "tipo": "clase",
-        "horario": "13:20 a 14:10"
+        "horario": "clase 8"
       },
       {
-        "bloque": 2,
+        "bloque": 9,
         "tipo": "clase",
-        "horario": "14:10 a 15:00"
+        "horario": "clase 9"
       },
       {
-        "bloque": 3,
+        "bloque": 10,
         "tipo": "clase",
-        "horario": "15:00 a 15:50"
+        "horario": "clase 10"
       },
       {
         "bloque": "R",
         "tipo": "receso",
-        "horario": "15:50 a 16:20"
+        "horario": "14:10 a 15:20"
       },
       {
-        "bloque": 4,
+        "bloque": 11,
         "tipo": "clase",
-        "horario": "16:20 a 17:10"
+        "horario": "clase 11"
       },
       {
-        "bloque": 5,
+        "bloque": 12,
         "tipo": "clase",
-        "horario": "17:10 a 18:00"
+        "horario": "clase 12"
       },
       {
-        "bloque": 6,
+        "bloque": 13,
         "tipo": "clase",
-        "horario": "18:00 a 18:50"
+        "horario": "clase 13"
       },
       {
-        "bloque": 7,
+        "bloque": 14,
         "tipo": "clase",
-        "horario": "18:50 a 19:40"
-      },
-      {
-        "bloque": 8,
-        "tipo": "clase",
-        "horario": "abc"
+        "horario": "clase 14"
       }
     ]
   }
