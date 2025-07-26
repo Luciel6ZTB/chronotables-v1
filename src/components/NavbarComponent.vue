@@ -1,4 +1,3 @@
-<!-- src/components/NavBarComponent.vue -->
 <template>
   <q-header elevated class="bg-primary">
     <q-toolbar>
@@ -13,6 +12,7 @@
         <q-tab name="inicio" label="Inicio" />
         <q-tab name="configuracion" label="Configuración" />
         <q-tab name="visualizacion" label="Visualización" />
+        <q-tab name="exportar" label="Exportar" />
       </q-tabs>
       <q-space />
     </q-toolbar>
@@ -74,12 +74,18 @@ export default {
           // Detecta subtab de visualización
           if (newPath.includes('/general')) activeVisualTab.value = 'general'
           else if (newPath.includes('/individual')) activeVisualTab.value = 'individual'
-        } else if (newPath.startsWith('/config')) {
+        }
+        //configuracion e hijos
+        else if (newPath.startsWith('/config')) {
           activeTab.value = 'configuracion'
           if (newPath.includes('/materias')) activeConfigTab.value = 'materias'
           else if (newPath.includes('/docentes')) activeConfigTab.value = 'docentes'
           else if (newPath.includes('/grupos')) activeConfigTab.value = 'grupos'
           else if (newPath.includes('/aulas')) activeConfigTab.value = 'aulas'
+        }
+        //exportar activo
+        else if (newPath.startsWith('/exportar')) {
+          activeTab.value = 'exportar'
         }
       },
       { immediate: true },
@@ -88,7 +94,8 @@ export default {
     const onTabChange = (tab) => {
       if (tab === 'inicio') router.push({ name: 'inicio' })
       else if (tab === 'configuracion') router.push({ name: 'config-materias' })
-      else if (tab === 'visualizacion') router.push({ name: 'ver-general' }) // Default a General
+      else if (tab === 'visualizacion') router.push({ name: 'ver-general' })
+      else if (tab === 'exportar') router.push({ name: 'exportar' })
     }
 
     const goConfigSubtab = (subtab) => {

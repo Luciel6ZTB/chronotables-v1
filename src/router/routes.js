@@ -56,6 +56,12 @@ const routes = [
           { path: '', redirect: 'materias' }, //tab predeterminada
         ],
       },
+
+      {
+        path: 'exportar',
+        name: 'exportar',
+        component: () => import('pages/ExportarView.vue'),
+      },
     ],
   },
 ]
