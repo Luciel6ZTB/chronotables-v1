@@ -19,16 +19,23 @@ const localGrupo = ref({
   semestre: null,
   grupo: '',
   nomenclatura: '',
-  especialidad: '',
+  carrera: '',
   turno: '',
 })
 
 const turnoOptions = ['Matutino', 'Vespertino']
 const semestreOptions = Array.from({ length: 6 }, (_, i) => i + 1)
-const especialidades = [
+const carreras = [
   'Mantenimiento Automotriz',
+  'Mantenimiento Industrial',
+  'Mantenimiento a Instalaciones Petroleras',
   'Diseño Grafico Digital',
+  'Electrónica',
   'Inteligencia Artificial',
+  'Ciberseguridad',
+  'Semiconductores y Microelectronica',
+  'Logística',
+  'Programación',
 ]
 
 watch(
@@ -40,7 +47,7 @@ watch(
           semestre: null,
           grupo: '',
           nomenclatura: '',
-          especialidad: '',
+          carrera: '',
           turno: '',
         }
   },
@@ -65,7 +72,7 @@ function validar() {
     g.semestre &&
     g.grupo.length === 1 &&
     g.nomenclatura.length <= 4 &&
-    g.especialidad &&
+    g.carrera &&
     turnoOptions.includes(g.turno)
   )
 }
@@ -101,13 +108,7 @@ function validar() {
           outlined
           dense
         />
-        <q-select
-          v-model="localGrupo.especialidad"
-          label="Especialidad"
-          :options="especialidades"
-          outlined
-          dense
-        />
+        <q-select v-model="localGrupo.carrera" label="Carrera" :options="carreras" outlined dense />
         <q-select v-model="localGrupo.turno" label="Turno" :options="turnoOptions" outlined dense />
       </q-card-section>
 

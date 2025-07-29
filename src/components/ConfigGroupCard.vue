@@ -102,7 +102,10 @@ const totalPages = computed(() => {
           "
           style="cursor: pointer"
         >
-          <div class="text-subtitle1">{{ grupo.nombre }}</div>
+          <div class="text-subtitle1">{{ grupo.nomenclatura }}</div>
+
+          <!-- Mostrar "Dual" solo si la carrera lo es -->
+          <div v-if="grupo.carrera === 'Dual'" class="text-subtitle1">Dual</div>
         </div>
         <div
           v-if="filteredGrupos.length === 0"
@@ -115,12 +118,6 @@ const totalPages = computed(() => {
     </div>
   </q-card>
 </template>
-
-<script>
-export default {
-  name: 'ConfigSubjectCard',
-}
-</script>
 
 <style scoped>
 .full-height-card {

@@ -1,25 +1,28 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { fetchGrupos } from 'src/services/gruposService'
+import { ref, computed, onMounted } from 'vue'
+import { useGruposStore } from 'src/stores/gruposStore'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigGroupCard from 'components/ConfigGroupCard.vue'
 import ConfigFormGroup from 'components/forms/ConfigFormGroup.vue'
 import DeleteWarning from 'components/DeleteWarning.vue'
 
-const grupos = ref([])
 const selectedGrupo = ref(null)
 const showForm = ref(false)
 const editingGrupo = ref(null)
 const showDeleteWarning = ref(false)
 
-onMounted(async () => {
-  grupos.value = await fetchGrupos()
+const gruposStore = useGruposStore()
+const grupos = computed(() => gruposStore.grupos)
+
+onMounted(() => {
+  gruposStore.cargarGrupos()
 })
 
 function onAgregar() {
   editingGrupo.value = null
   showForm.value = true
 }
+
 function onEditar() {
   if (selectedGrupo.value) {
     editingGrupo.value = { ...selectedGrupo.value }

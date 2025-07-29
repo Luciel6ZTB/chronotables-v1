@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+
 const props = defineProps({
   materias: Array,
   selectedMateria: Object,
@@ -71,7 +72,7 @@ const totalPages = computed(() => {
           v-for="materia in paginatedMaterias"
           :key="materia.id"
           class="teacher-card"
-          :class="{ selected: selectedMateria && selectedMateria.id === materia.id }"
+          :class="{ selected: selectedMateria?.id?.toString() === materia.id?.toString() }"
           @click.stop="
             emit(
               'select-materia',
@@ -80,7 +81,7 @@ const totalPages = computed(() => {
           "
           style="cursor: pointer"
         >
-          <div class="text-subtitle1">{{ materia.clave }}</div>
+          <div class="text-subtitle1">{{ materia.abreviatura }}</div>
         </div>
         <div
           v-if="filteredMaterias.length === 0"
@@ -93,12 +94,6 @@ const totalPages = computed(() => {
     </div>
   </q-card>
 </template>
-
-<script>
-export default {
-  name: 'ConfigSubjectCard',
-}
-</script>
 
 <style scoped>
 .full-height-card {

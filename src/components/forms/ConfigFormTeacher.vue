@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { materiasMock, gruposMock } from 'src/mockups/index'
+import { useMateriasStore } from 'src/stores/materiasStore'
+import { useGruposStore } from 'src/stores/gruposStore'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -14,18 +15,26 @@ const dialogVisible = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const materiasStore = useMateriasStore()
+const gruposStore = useGruposStore()
+
 const localDocente = ref({
+  id: '',
   nombre: '',
-  abreviatura: '',
+  nombre_corto: '',
   horas_semanales_totales: 0,
   materias: [],
   horas_fortalecimiento_academico: [],
   horas_dual: [],
 })
 
-const materiasOptions = materiasMock.map((m) => ({ label: m.clave, value: m.clave }))
-const materiasPorNombre = materiasMock.map((m) => ({ label: m.nombre, value: m.nombre }))
-const gruposOptions = gruposMock.map((g) => ({ label: g.nombre, value: g.nombre }))
+const materiasOptions = computed(() =>
+  materiasStore.materias.map((m) => ({ label: m.abreviatura, value: m.abreviatura })),
+)
+const gruposOptions = computed(() =>
+  gruposStore.grupos.map((g) => ({ label: g.nomenclatura, value: g.nomenclatura })),
+)
+
 const fortalecimientoOptions = [
   'Concursos',
   'Tutorías',
@@ -43,7 +52,7 @@ watch(
       } else {
         localDocente.value = {
           nombre: '',
-          abreviatura: '',
+          nombre_corto: '',
           horas_semanales_totales: 0,
           materias: [],
           horas_fortalecimiento_academico: [],
@@ -113,7 +122,7 @@ function guardar() {
         <q-input v-model="localDocente.nombre" label="Nombre completo" outlined dense required />
 
         <q-input
-          v-model="localDocente.abreviatura"
+          v-model="localDocente.nombre_corto"
           label="Abreviatura"
           maxlength="20"
           outlined
@@ -138,8 +147,9 @@ function guardar() {
             :key="idx"
             class="q-mb-md q-gutter-sm"
           >
+            <!-- TODO: Cambiar por ID -->
             <q-select
-              v-model="materia.id"
+              v-model="materia.abreviatura"
               :options="materiasOptions"
               label="Materia"
               emit-value
@@ -203,7 +213,7 @@ function guardar() {
           >
             <q-select
               v-model="dual.nombre"
-              :options="materiasPorNombre"
+              :options="materiasOptions"
               label="Materia"
               emit-value
               map-options
@@ -240,9 +250,3 @@ function guardar() {
     </q-card>
   </q-dialog>
 </template>
-
-<style scoped>
-.text-beige {
-  color: #bfa97a;
-}
-</style>

@@ -22,11 +22,18 @@ const tipoOptions = [
 const semestreOptions = Array.from({ length: 6 }, (_, i) => i + 1)
 const especialidades = [
   'Mantenimiento Automotriz',
+  'Mantenimiento Industrial',
+  'Mantenimiento a Instalaciones Petroleras',
   'Diseño Grafico Digital',
+  'Electrónica',
   'Inteligencia Artificial',
+  'Ciberseguridad',
+  'Semiconductores y Microelectrónica',
+  'Logística',
+  'Programación',
 ]
 const localMateria = ref({
-  id: '',
+  abreviatura: '',
   nombre: '',
   semestre: null,
   tipo: '',
@@ -45,7 +52,7 @@ watch(
         cantidadSubmodulos.value = props.materia.submodulos?.length || 0
       } else {
         localMateria.value = {
-          id: '',
+          abreviatura: '',
           nombre: '',
           semestre: null,
           tipo: '',
@@ -90,7 +97,7 @@ function guardar() {
 
       <q-card-section class="q-gutter-md">
         <q-input
-          v-model="localMateria.id"
+          v-model="localMateria.abreviatura"
           label="Abreviatura / Código"
           maxlength="5"
           outlined

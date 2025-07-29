@@ -1,19 +1,22 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { docentesMock } from 'src/mockups/index'
+import { storeToRefs } from 'pinia'
+import { useDocentesStore } from 'src/stores/docentesStore'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigTeacherCard from 'components/ConfigTeacherCard.vue'
 import ConfigFormTeacher from 'components/forms/ConfigFormTeacher.vue'
 import DeleteWarning from 'components/DeleteWarning.vue'
 
-const docentes = ref([])
+const store = useDocentesStore()
+const { docentes } = storeToRefs(store)
+
 const selectedDocente = ref(null)
 const showForm = ref(false)
 const editingDocente = ref(null)
 const showDeleteWarning = ref(false)
 
 onMounted(() => {
-  docentes.value = [...docentesMock]
+  store.cargarDocentes()
 })
 
 function onAgregar() {

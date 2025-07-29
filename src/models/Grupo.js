@@ -1,9 +1,10 @@
-//campos de mongodb.
 export class Grupo {
-  constructor({ _id, nombre, semestre, turno }) {
+  constructor({ _id, semestre, grupo, nomenclatura, carrera, turno }) {
     this.id = _id?.$oid || _id?.toString?.() || _id || null
-    this.nombre = nombre
-    this.semestre = semestre
-    this.turno = turno
+    this.semestre = semestre ?? null
+    this.grupo = grupo ?? ''
+    this.nomenclatura = nomenclatura ?? ''
+    this.carrera = carrera ?? ''
+    this.turno = turno ?? ''
   }
 }
