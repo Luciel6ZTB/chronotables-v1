@@ -1,71 +1,119 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-//nombre, semestre, turno
+
 const props = defineProps({
   modelValue: Boolean,
   titulo: String,
   color: String,
-  grupo: {
-    type: Object,
-    default: null,
-  },
+  grupo: Object,
 })
-const emit = defineEmits(['update:modelValue', 'guardar'])
-
-const nombre = ref('')
-const semestre = ref('')
-const turno = ref('')
-
-watch(
-  () => props.grupo,
-  (nuevo) => {
-    if (nuevo) {
-      nombre.value = nuevo.nombre || ''
-      semestre.value = nuevo.semestre || ''
-      turno.value = nuevo.turno || ''
-    } else {
-      nombre.value = ''
-      semestre.value = ''
-      turno.value = ''
-    }
-  },
-  { immediate: true },
-)
 
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 })
 
-function closeDialog() {
-  dialogVisible.value = false
+const emit = defineEmits(['update:modelValue', 'guardar'])
+
+const localGrupo = ref({
+  semestre: null,
+  grupo: '',
+  nomenclatura: '',
+  especialidad: '',
+  turno: '',
+})
+
+const turnoOptions = ['Matutino', 'Vespertino']
+const semestreOptions = Array.from({ length: 6 }, (_, i) => i + 1)
+const especialidades = [
+  'Mantenimiento Automotriz',
+  'Diseño Grafico Digital',
+  'Inteligencia Artificial',
+]
+
+watch(
+  () => props.grupo,
+  (val) => {
+    localGrupo.value = val
+      ? { ...val }
+      : {
+          semestre: null,
+          grupo: '',
+          nomenclatura: '',
+          especialidad: '',
+          turno: '',
+        }
+  },
+  { immediate: true },
+)
+
+function cerrar() {
+  emit('update:modelValue', false)
 }
 
 function guardar() {
-  emit('guardar', {
-    nombre: nombre.value,
-    id: props.grupo?.id,
-    semestre: semestre.value,
-    turno: turno.value,
-  })
-  closeDialog()
+  if (validar()) {
+    console.log('[Grupo creado]', localGrupo.value)
+    emit('guardar', { ...localGrupo.value })
+    cerrar()
+  }
+}
+
+function validar() {
+  const g = localGrupo.value
+  return (
+    g.semestre &&
+    g.grupo.length === 1 &&
+    g.nomenclatura.length <= 4 &&
+    g.especialidad &&
+    turnoOptions.includes(g.turno)
+  )
 }
 </script>
 
 <template>
-  <q-dialog v-model="dialogVisible">
+  <q-dialog v-model="dialogVisible" persistent>
     <q-card style="min-width: 350px">
       <q-card-section :class="color">
         <div class="text-h6">{{ titulo }}</div>
       </q-card-section>
-      <q-card-section>
-        <q-input v-model="nombre" label="Nombre del grupo (ej. 201A)" />
-        <q-input v-model="semestre" label="Semestre" />
-        <q-input v-model="turno" label="Matutino / Vespertino" />
+      <q-card-section class="q-gutter-sm">
+        <q-select
+          v-model="localGrupo.semestre"
+          label="Semestre"
+          :options="semestreOptions"
+          outlined
+          dense
+          emit-value
+          map-options
+        />
+        <q-input
+          v-model="localGrupo.grupo"
+          label="Grupo (una letra)"
+          maxlength="1"
+          outlined
+          dense
+        />
+        <q-input
+          v-model="localGrupo.nomenclatura"
+          label="Nomenclatura (ej. 101A)"
+          maxlength="4"
+          outlined
+          dense
+        />
+        <q-select
+          v-model="localGrupo.especialidad"
+          label="Especialidad"
+          :options="especialidades"
+          outlined
+          dense
+        />
+        <q-select v-model="localGrupo.turno" label="Turno" :options="turnoOptions" outlined dense />
       </q-card-section>
+
       <q-card-actions align="right">
-        <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
-        <q-btn flat label="Guardar" color="primary" @click="guardar" :disable="!nombre" />
+        <q-btn flat label="Cancelar" color="negative" @click="cerrar" />
+        <q-btn label="Guardar" color="primary" @click="guardar" />
       </q-card-actions>
     </q-card>
   </q-dialog>

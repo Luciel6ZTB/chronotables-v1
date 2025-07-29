@@ -12,7 +12,6 @@ const showForm = ref(false)
 const editingMateria = ref(null)
 const showDeleteWarning = ref(false)
 
-//cargar mockups
 onMounted(() => {
   materias.value = [...materiasMock]
 })
