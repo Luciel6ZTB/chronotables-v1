@@ -1,16 +1,16 @@
-import { MongoClient } from 'mongodb'
+import mongoose from 'mongoose'
 
-//cambiar el nombre de la base de datos
-const uri = 'mongodb://localhost:27017'
-const dbName = 'timetables_system'
+const uri = 'mongodb://localhost:27017/timetables_system'
 
-let client = null
+let isConnected = false
 
 export async function connectToDatabase() {
-  if (!client) {
-    client = new MongoClient(uri)
-    await client.connect()
-    console.log('Conectado a MongoDB')
+  if (!isConnected) {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    isConnected = true
+    console.log('Conectado a MongoDB con Mongoose')
   }
-  return client.db(dbName)
 }

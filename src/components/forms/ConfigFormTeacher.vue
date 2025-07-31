@@ -26,10 +26,11 @@ const localDocente = ref({
   materias: [],
   horas_fortalecimiento_academico: [],
   horas_dual: [],
+  bloques_recomendados_asignar: [],
 })
 
 const materiasOptions = computed(() =>
-  materiasStore.materias.map((m) => ({ label: m.abreviatura, value: m.abreviatura })),
+  materiasStore.materias.map((m) => ({ label: `${m.abreviatura}`, value: m.id })),
 )
 const gruposOptions = computed(() =>
   gruposStore.grupos.map((g) => ({ label: g.nomenclatura, value: g.nomenclatura })),
@@ -48,7 +49,16 @@ watch(
   (val) => {
     if (val) {
       if (props.docente) {
-        localDocente.value = JSON.parse(JSON.stringify(props.docente))
+        // Asegúrate que materias está definido y es array
+        ;(localDocente.value = {
+          ...JSON.parse(JSON.stringify(props.docente)),
+          materias: props.docente.materias ?? [],
+          horas_fortalecimiento_academico: props.docente.horas_fortalecimiento_academico ?? [],
+          horas_dual: props.docente.horas_dual ?? [],
+          bloques_recomendados_asignar: props.docente.bloques_recomendados_asignar ?? [],
+          horas_extracurriculares: props.docente.horas_extracurriculares ?? [],
+        }),
+          console.log('extracurriculares:', props.docente.horas_extracurriculares)
       } else {
         localDocente.value = {
           nombre: '',
@@ -57,6 +67,8 @@ watch(
           materias: [],
           horas_fortalecimiento_academico: [],
           horas_dual: [],
+          bloques_recomendados_asignar: [],
+          horas_extracurriculares: [],
         }
       }
     }
@@ -90,7 +102,7 @@ function cerrar() {
 }
 
 function guardar() {
-  const payload = { ...localDocente.value }
+  const payload = JSON.parse(JSON.stringify(localDocente.value))
 
   // Filtrar materias sin grupo asignado
   payload.materias = payload.materias?.filter((m) => m.grupos_preferidos_asignar.length > 0)
@@ -106,6 +118,14 @@ function guardar() {
   // Si no hay dual, eliminar el campo
   if (!payload.horas_dual || payload.horas_dual.length === 0) {
     delete payload.horas_dual
+  }
+
+  if (!payload.bloques_recomendados_asignar || payload.bloques_recomendados_asignar.length === 0) {
+    delete payload.bloques_recomendados_asignar
+  }
+
+  if (!payload.horas_extracurriculares || payload.horas_extracurriculares.length === 0) {
+    delete payload.horas_extracurriculares
   }
 
   console.log('[Docente creado]', payload)
@@ -140,6 +160,17 @@ function guardar() {
           required
         />
 
+        <q-select
+          v-model="localDocente.bloques_recomendados_asignar"
+          :options="[...Array(13).keys()].map((n) => n + 1)"
+          label="Bloques preferidos para asignar"
+          multiple
+          emit-value
+          map-options
+          outlined
+          dense
+        />
+
         <div>
           <div class="text-subtitle2">Materias asignadas</div>
           <div
@@ -149,7 +180,7 @@ function guardar() {
           >
             <!-- TODO: Cambiar por ID -->
             <q-select
-              v-model="materia.abreviatura"
+              v-model="materia.id"
               :options="materiasOptions"
               label="Materia"
               emit-value
@@ -240,6 +271,37 @@ function guardar() {
             <q-btn flat icon="delete" color="negative" @click="eliminarDual(idx)" />
           </div>
           <q-btn flat label="Agregar dual" icon="add" @click="agregarDual" />
+        </div>
+
+        <div>
+          <div class="text-subtitle2">Actividades Extracurriculares</div>
+          <div
+            v-for="(extra, idx) in localDocente.horas_extracurriculares"
+            :key="idx"
+            class="q-mb-md q-gutter-sm"
+          >
+            <q-input v-model="extra.nombre" label="Nombre" outlined dense />
+            <q-input
+              v-model.number="extra.horas"
+              type="number"
+              label="Horas"
+              min="1"
+              outlined
+              dense
+            />
+            <q-btn
+              flat
+              icon="delete"
+              color="negative"
+              @click="localDocente.horas_extracurriculares.splice(idx, 1)"
+            />
+          </div>
+          <q-btn
+            flat
+            label="Agregar extracurricular"
+            icon="add"
+            @click="localDocente.horas_extracurriculares.push({ nombre: '', horas: 1 })"
+          />
         </div>
       </q-card-section>
 

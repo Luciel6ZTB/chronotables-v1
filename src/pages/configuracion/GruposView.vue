@@ -34,20 +34,28 @@ function onEliminar() {
     showDeleteWarning.value = true
   }
 }
-function onConfirmDelete() {
-  grupos.value = grupos.value.filter((g) => g.id !== selectedGrupo.value.id)
-  selectedGrupo.value = null
-  showDeleteWarning.value = false
-}
-function onGuardar(grupo) {
-  if (grupo.id) {
-    const idx = grupos.value.findIndex((g) => g.id === grupo.id)
-    if (idx >= 0) grupos.value[idx] = { ...grupo }
-  } else {
-    grupos.value.push({ ...grupo, id: Date.now() })
+async function onConfirmDelete() {
+  try {
+    await gruposStore.borrarGrupo(selectedGrupo.value.id)
+    selectedGrupo.value = null
+    showDeleteWarning.value = false
+  } catch (err) {
+    console.error('Error al eliminar grupo:', err)
   }
-  showForm.value = false
-  selectedGrupo.value = null
+}
+
+async function onGuardar(grupo) {
+  try {
+    if (grupo.id) {
+      await gruposStore.actualizarGrupo(grupo.id, grupo)
+    } else {
+      await gruposStore.agregarGrupo(grupo)
+    }
+    showForm.value = false
+    selectedGrupo.value = null
+  } catch (err) {
+    console.error('Error al guardar grupo:', err)
+  }
 }
 </script>
 <template>

@@ -5,10 +5,22 @@ import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import {
   obtenerGrupos,
+  crearGrupo,
+  editarGrupo,
+  eliminarGrupo,
+} from './mongo/controllers/gruposController'
+import {
   obtenerMaterias,
+  crearMateria,
+  editarMateria,
+  eliminarMateria,
+} from './mongo/controllers/materiasController'
+import {
   obtenerDocentes,
-} from './mongo/controllers/indexController'
-
+  crearDocente,
+  editarDocente,
+  eliminarDocente,
+} from './mongo/controllers/docentesController'
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
@@ -157,6 +169,39 @@ ipcMain.handle('get-materias', async () => {
 
 ipcMain.handle('get-docentes', async () => {
   return await obtenerDocentes()
+})
+
+//crear
+ipcMain.handle('create-grupo', async (_event, grupoData) => {
+  return await crearGrupo(grupoData)
+})
+ipcMain.handle('create-materia', async (_event, data) => {
+  return await crearMateria(data)
+})
+ipcMain.handle('create-docente', async (_event, docenteData) => {
+  return await crearDocente(docenteData)
+})
+
+//editar
+ipcMain.handle('update-grupo', async (_event, id, datosActualizados) => {
+  return await editarGrupo(id, datosActualizados)
+})
+ipcMain.handle('update-materia', async (_event, id, data) => {
+  return await editarMateria(id, data)
+})
+ipcMain.handle('update-docente', async (_event, { id, datosActualizados }) => {
+  return await editarDocente(id, datosActualizados)
+})
+
+//eliminar
+ipcMain.handle('delete-grupo', async (_event, id) => {
+  return await eliminarGrupo(id)
+})
+ipcMain.handle('delete-materia', async (_event, id) => {
+  return await eliminarMateria(id)
+})
+ipcMain.handle('delete-docente', async (_event, id) => {
+  return await eliminarDocente(id)
 })
 
 app.whenReady().then(createWindow)

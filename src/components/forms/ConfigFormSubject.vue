@@ -85,6 +85,18 @@ function cerrar() {
 }
 function guardar() {
   const payload = { ...localMateria.value }
+
+  if (payload.tipo === 'tronco_comun') {
+    delete payload.submodulos
+    delete payload.especialidad
+  } else if (payload.tipo === 'modulo_profesional') {
+    // Asegura que submodulos es un arreglo plano
+    payload.submodulos = (payload.submodulos || []).map((sub) => ({
+      nombre: sub.nombre,
+      horas: Number(sub.horas),
+    }))
+  }
+
   console.log('[Materia creada]', payload)
   emit('guardar', payload)
   cerrar()

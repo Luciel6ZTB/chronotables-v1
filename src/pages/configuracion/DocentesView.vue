@@ -36,28 +36,29 @@ function onEliminar() {
     showDeleteWarning.value = true
   }
 }
-function onConfirmDelete() {
-  docentes.value = docentes.value.filter((d) => d.id !== selectedDocente.value.id)
-  selectedDocente.value = null
-  showDeleteWarning.value = false
+
+async function onConfirmDelete() {
+  try {
+    await store.eliminarDocente(selectedDocente.value.id)
+    selectedDocente.value = null
+    showDeleteWarning.value = false
+  } catch (err) {
+    console.error('Error al eliminar docente:', err)
+  }
 }
 
-function onGuardar(docente) {
-  if (docente.id) {
-    // Editar existente
-    const idx = docentes.value.findIndex((d) => d.id === docente.id)
-    if (idx >= 0) {
-      docentes.value[idx] = { ...docente }
+async function onGuardar(docente) {
+  try {
+    if (docente.id) {
+      await store.editarDocente(docente.id, docente)
+    } else {
+      await store.agregarDocente(docente)
     }
-  } else {
-    // Nuevo docente
-    docentes.value.push({
-      ...docente,
-      id: Date.now(), // ID temporal
-    })
+    showForm.value = false
+    selectedDocente.value = null
+  } catch (err) {
+    console.error('Error al guardar docente:', err)
   }
-  showForm.value = false
-  selectedDocente.value = null
 }
 </script>
 

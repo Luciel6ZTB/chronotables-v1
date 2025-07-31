@@ -37,22 +37,28 @@ function onEliminar() {
   }
 }
 
-function onConfirmDelete() {
-  materias.value = materias.value.filter((m) => m.id !== selectedMateria.value.id)
-  selectedMateria.value = null
-  showDeleteWarning.value = false
+async function onConfirmDelete() {
+  try {
+    await store.eliminarMateria(selectedMateria.value.id)
+    selectedMateria.value = null
+    showDeleteWarning.value = false
+  } catch (err) {
+    console.error('Error al eliminar materia:', err)
+  }
 }
 
-function onGuardar(materia) {
-  if (materia.id) {
-    // Editar existente
-    const idx = materias.value.findIndex((m) => m.id === materia.id)
-    if (idx >= 0) materias.value[idx] = { ...materia }
-  } else {
-    // Nueva
-    materias.value.push({ ...materia, id: Date.now() })
+async function onGuardar(materia) {
+  try {
+    if (materia.id) {
+      await store.editarMateria(materia.id, materia)
+    } else {
+      await store.agregarMateria(materia)
+    }
+    showForm.value = false
+    selectedMateria.value = null
+  } catch (err) {
+    console.error('Error al guardar materia:', err)
   }
-  selectedMateria.value = null
 }
 </script>
 
