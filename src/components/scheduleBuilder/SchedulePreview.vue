@@ -70,7 +70,7 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import { watch } from 'vue'
-import { useScheduleBuilder } from '../scheduleBuilder/useScheduleBuilder'
+import { useScheduleBuilder } from './useScheduleBuilder'
 
 const $q = useQuasar()
 
@@ -84,13 +84,6 @@ watch(currentTurn, () => {
 const handleScheduleUpdate = () => {
   try {
     updateScheduleData()
-    /*
-    $q.notify({
-      type: 'positive',
-      message: 'Horarios actualizados',
-      timeout: 1000,
-    })
-    */
   } catch {
     $q.notify({
       type: 'negative',

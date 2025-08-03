@@ -108,7 +108,7 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import { ref, watch } from 'vue'
-import { useScheduleBuilder } from '../scheduleBuilder/useScheduleBuilder'
+import { useScheduleBuilder } from './useScheduleBuilder'
 const $q = useQuasar()
 
 const emit = defineEmits(['configuration-saved'])

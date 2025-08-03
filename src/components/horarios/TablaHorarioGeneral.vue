@@ -1,49 +1,53 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
-const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
-//esto es pq props por estandar quiere un string pero con los grupo mando
-// un objeto pq se ocupa el turno y id, es decir, se devuelven vrias cosas
+const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
 const props = defineProps({
-  grupo: {
-    type: Object,
-    required: true,
-  },
+  grupo: { type: String, required: true },
+  horarioGrupal: { type: Object, required: false },
 })
 
 const drawer = ref(false)
 const detalle = ref(null)
 const { horarioEstructura, cargarHorarioDesdeConfig } = readHorarioBuilder()
-//cambiar de OnMounted a watch pq cambia cada vez que se elige un elemento de dropdown
 watch(
   () => props.grupo,
-  (nuevoGrupo) => {
-    if (nuevoGrupo?.turno) {
-      cargarHorarioDesdeConfig(nuevoGrupo.turno)
+  (nuevoGrupoId) => {
+    if (nuevoGrupoId) {
+      const turno = deducirTurno(nuevoGrupoId)
+      cargarHorarioDesdeConfig(turno)
     }
   },
-  { immediate: true }, // Para que se cargue también al montar por primera vez
+  { immediate: true },
 )
+
+function deducirTurno(grupoId) {
+  const letra = grupoId.slice(-1).toUpperCase()
+  return letra >= 'A' && letra <= 'F' ? 'matutino' : 'vespertino'
+}
 
 function abrirDetalle(celda) {
   if (!celda || !celda.materia) return
   detalle.value = celda
   drawer.value = true
 }
-//filas ya no se calcula pq ya no dependen del mockup de horario, si no del archivo de json.
 const rows = computed(() => {
+  if (!horarioEstructura.value.length || !props.horarioGrupal) return []
+
   return horarioEstructura.value.map((bloque) => {
     return {
       bloque: bloque.numero,
       hora: bloque.horario,
       receso: bloque.tipo === 'receso',
-      //REEMPLAZAR CUANDO YA SE TENGA ALGORITMO CLARO
-      clases: dias.map((dia) => ({
-        dia,
-        docente: 'Docente X', // info falsa temporal
-        materia: 'Materia Y',
-        aula: 'Aula Z',
-      })),
+      clases: dias.map((dia) => {
+        const clase = props.horarioGrupal?.horario?.[dia]?.[bloque.numero] || {}
+        return {
+          dia,
+          docente: clase.docente || '',
+          materia: clase.materia || '',
+          aula: clase.aula || '',
+        }
+      }),
     }
   })
 })
@@ -68,7 +72,7 @@ function obtenerClasePorDia(clases, dia) {
       row-key="bloque"
       hide-bottom
       class="horario-table"
-      :style="{ maxWidth: '1050px', margin: '0 auto' }"
+      :style="{ margin: '0 auto' }"
       :pagination="{ rowsPerPage: 0 }"
     >
       <!-- Encabezado personalizado -->
@@ -146,13 +150,12 @@ function obtenerClasePorDia(clases, dia) {
   justify-content: center;
   margin: 0 auto;
   border-radius: 40px;
-  max-width: 1050px;
 }
 .horario-table {
   background: #222;
   border: 2px solid #222;
   min-width: 790px;
-  max-width: 900px;
+  max-width: 830px;
   width: 100%;
   box-shadow: 0 1px 6px #0001;
 }

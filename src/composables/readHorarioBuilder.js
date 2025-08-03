@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 
 export function readHorarioBuilder() {
-  //vacío, aqui se guarda el arreglo completo con las horas :)
   const horarioEstructura = ref([])
 
   const cargarHorarioDesdeConfig = async (turno = 'matutino') => {

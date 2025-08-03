@@ -1,9 +1,24 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useHorariosGrupales } from 'src/composables/useHorariosClases'
 import TablaHorarioGeneral from 'components/horarios/TablaHorarioGeneral.vue'
-import { gruposMock } from 'src/mockups/index'
-const gruposDisponibles = gruposMock
+
 const grupoSeleccionado = ref(null)
+
+const { gruposDisponibles, horarioGrupoSeleccionado, cargarGruposHorarios, cargarHorarioDeGrupo } =
+  useHorariosGrupales()
+
+onMounted(async () => {
+  await cargarGruposHorarios()
+})
+
+watch(grupoSeleccionado, async (nuevoGrupoId) => {
+  if (nuevoGrupoId) {
+    await cargarHorarioDeGrupo(nuevoGrupoId)
+  } else {
+    horarioGrupoSeleccionado.value = null
+  }
+})
 </script>
 <template>
   <div class="q-pa-lg">
@@ -15,7 +30,7 @@ const grupoSeleccionado = ref(null)
           :options="gruposDisponibles"
           option-label="nombre"
           option-value="id"
-          :emit-value="false"
+          emit-value
           map-options
           dense
           outlined
@@ -26,7 +41,12 @@ const grupoSeleccionado = ref(null)
       </div>
     </div>
 
-    <TablaHorarioGeneral v-if="grupoSeleccionado" :grupo="grupoSeleccionado" />
+    <TablaHorarioGeneral
+      v-if="grupoSeleccionado && horarioGrupoSeleccionado"
+      :grupo="grupoSeleccionado"
+      :horarioGrupal="horarioGrupoSeleccionado"
+    />
+
     <div v-else class="q-mt-xl text-center text-subtitle1 text-grey-7">
       Elige un grupo para visualizar su horario.
     </div>

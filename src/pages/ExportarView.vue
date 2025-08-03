@@ -1,3 +1,42 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { generarExcelHorarioGrupal } from 'src/utils/exportadorHorarios/generarExcelHorarios'
+
+const formato = ref(null)
+const tipoHorario = ref(null)
+const modoSeleccion = ref('todos')
+const seleccion = ref([])
+
+const exportarHorario = async () => {
+  if (formato.value === 'excel' && tipoHorario.value === 'general') {
+    await generarExcelHorarioGrupal()
+  } else {
+    // Aquí podrías poner la lógica de PDF o individuales luego
+    console.log('Exportar en otro formato o tipo aún no implementado')
+  }
+}
+
+const formatoOptions = [
+  { label: 'PDF', value: 'pdf' },
+  { label: 'Excel', value: 'excel' },
+]
+
+const tipoHorarioOptions = [
+  { label: 'Individual (docente)', value: 'individual' },
+  { label: 'General (grupos)', value: 'general' },
+]
+
+const modoSeleccionOptions = [
+  { label: 'Todos', value: 'todos' },
+  { label: 'Seleccionar algunos', value: 'algunos' },
+]
+
+const docentesOptions = ['Ana Gómez', 'Carlos Méndez', 'Laura Sánchez']
+
+const puedeExportar = computed(() => {
+  return !!formato.value && !!tipoHorario.value
+})
+</script>
 <template>
   <div class="q-pa-md">
     <q-card class="export-card">
@@ -27,7 +66,9 @@
 
         <!-- Selección de todos o algunos -->
         <div>
+          <!-- Mostrar solo si el formato es PDF -->
           <q-option-group
+            v-if="formato === 'pdf'"
             v-model="modoSeleccion"
             :options="modoSeleccionOptions"
             color="red-7"
@@ -37,7 +78,10 @@
         </div>
 
         <!-- Filtro dinámico -->
-        <div v-if="modoSeleccion === 'algunos' && tipoHorario === 'individual'">
+        <!-- Mostrar solo si es PDF e individual -->
+        <div
+          v-if="formato === 'pdf' && modoSeleccion === 'algunos' && tipoHorario === 'individual'"
+        >
           <div class="text-subtitle2 text-grey-8">Seleccionar docente(s)</div>
           <q-select
             v-model="seleccion"
@@ -48,23 +92,7 @@
             color="red-7"
             use-chips
             multiple
-            :hint="'Selecciona uno o varios docentes'"
-            clearable
-          />
-        </div>
-
-        <div v-if="modoSeleccion === 'algunos' && tipoHorario === 'general'">
-          <div class="text-subtitle2 text-grey-8">Seleccionar grupo(s)</div>
-          <q-select
-            v-model="seleccion"
-            :options="gruposOptions"
-            label="Grupo(s)"
-            outlined
-            dense
-            color="red-7"
-            use-chips
-            multiple
-            :hint="'Selecciona uno o varios grupos'"
+            hint="Selecciona uno o varios docentes"
             clearable
           />
         </div>
@@ -77,46 +105,14 @@
           label="Exportar"
           icon="file_download"
           color="red-7"
-          :disable="!formato || !tipoHorario || !seleccionValido"
+          :disable="!puedeExportar"
           unelevated
+          @click="exportarHorario"
         />
       </q-card-actions>
     </q-card>
   </div>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue'
-
-const formato = ref(null)
-const tipoHorario = ref(null)
-const modoSeleccion = ref('todos')
-const seleccion = ref([])
-
-const formatoOptions = [
-  { label: 'PDF', value: 'pdf' },
-  { label: 'Excel', value: 'excel' },
-]
-
-const tipoHorarioOptions = [
-  { label: 'Individual (docente)', value: 'individual' },
-  { label: 'General (grupo)', value: 'general' },
-]
-
-const modoSeleccionOptions = [
-  { label: 'Todos', value: 'todos' },
-  { label: 'Seleccionar algunos', value: 'algunos' },
-]
-
-const docentesOptions = ['Ana Gómez', 'Carlos Méndez', 'Laura Sánchez']
-
-const gruposOptions = ['201A', '302B', '401C']
-
-const seleccionValido = computed(() => {
-  if (modoSeleccion.value === 'todos') return true
-  return Array.isArray(seleccion.value) && seleccion.value.length > 0
-})
-</script>
 
 <style scoped>
 .export-card {

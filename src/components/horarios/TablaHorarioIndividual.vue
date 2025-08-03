@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
-const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
+import { useHorariosDocentes } from 'src/composables/useHorariosClases'
 
 const props = defineProps({
   docente: {
@@ -13,30 +13,47 @@ const props = defineProps({
 const drawer = ref(false)
 const detalle = ref(null)
 const { horarioEstructura, cargarHorarioCompleto } = readHorarioBuilder()
+const { horarioDocenteSeleccionado, cargarHorarioDocente } = useHorariosDocentes()
 
+onMounted(() => {
+  cargarHorarioCompleto()
+})
+
+// ver cambios en docente
 watch(
   () => props.docente,
   (nuevoDocente) => {
     if (nuevoDocente) {
-      cargarHorarioCompleto()
+      cargarHorarioDocente(nuevoDocente.nombre)
     }
   },
   { immediate: true },
 )
+const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
+const formatoSemestre = (numero) => {
+  const romanos = ['I', 'II', 'III', 'IV', 'V', 'VI']
+  return romanos[numero - 1] ? `Semestre ${romanos[numero - 1]}` : ''
+}
 
 const rows = computed(() => {
   return horarioEstructura.value.map((bloque) => {
+    const clases = dias.map((dia) => {
+      const datosDia =
+        horarioDocenteSeleccionado.value?.horario?.[dia]?.[bloque.numero.toString()] || {}
+
+      return {
+        dia,
+        grupo: datosDia.grupo || '',
+        materia: datosDia.materia || '',
+        semestre: formatoSemestre(datosDia.semestre),
+      }
+    })
+
     return {
       bloque: bloque.numero,
       hora: bloque.horario,
       receso: bloque.tipo === 'receso',
-      //REEMPLAZAR CUANDO YA SE TENGA ALGORITMO CLARO
-      clases: dias.map((dia) => ({
-        dia,
-        grupo: '101A', // info falsa temporal
-        clave: 'Nombre de materia',
-        aula: 'Aula 5',
-      })),
+      clases,
     }
   })
 })
@@ -48,7 +65,7 @@ const columns = [
 ]
 
 function abrirDetalle(celda) {
-  if (!celda || !celda.clave) return
+  if (!celda || !celda.materia) return
   detalle.value = celda
   drawer.value = true
 }
@@ -95,8 +112,8 @@ function abrirDetalle(celda) {
               @click.stop="abrirDetalle(celda)"
             >
               <div class="clase-grupo">{{ celda.grupo }}</div>
-              <div class="clase-materia">{{ celda.clave }}</div>
-              <div class="clase-aula">{{ celda.aula }}</div>
+              <div class="clase-materia">{{ celda.materia }}</div>
+              <div class="clase-aula">{{ celda.semestre }}</div>
             </q-td>
           </template>
           <template v-else>
@@ -121,8 +138,8 @@ function abrirDetalle(celda) {
         <div v-if="detalle">
           <!--TODO: Aumentar el tamaño de font, buscar clase-->
           <div class="q-mb-sm"><b>Grupo:</b> {{ detalle.grupo }}</div>
-          <div class="q-mb-sm"><b>Materia:</b> {{ detalle.clave }}</div>
-          <div class="q-mb-sm"><b>Aula:</b> {{ detalle.aula }}</div>
+          <div class="q-mb-sm"><b>Materia:</b> {{ detalle.materia }}</div>
+          <div class="q-mb-sm"><b>Aula:</b> {{ detalle.semestre }}</div>
         </div>
       </q-card>
     </q-dialog>

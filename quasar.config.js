@@ -190,7 +190,7 @@ export default defineConfig((/* ctx */) => {
         appId: 'blood',
         extraResources: [
           {
-            from: 'src/algorithm',
+            from: 'src-electron/algorithm',
             to: 'algorithm',
           },
         ],

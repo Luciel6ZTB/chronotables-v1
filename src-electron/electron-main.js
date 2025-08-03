@@ -26,14 +26,29 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 const isDev = process.env.DEV
 
-// Configuración de rutas mejorada
+// Obtener ruta
 const getConfigPath = () => {
   if (isDev) {
-    // En desarrollo: src/algorithm/general.json
-    return path.resolve(currentDir, '../../src/algorithm/general.json')
+    return path.resolve(currentDir, './algorithm/config.json')
   } else {
-    // En producción: userData/algorithm/general.json
-    return path.join(app.getPath('userData'), 'algorithm', 'general.json')
+    // En producción: userData/algorithm/config.json
+    return path.join(app.getPath('userData'), 'algorithm', 'config.json')
+  }
+}
+
+const getHorarioGrupalPath = () => {
+  if (isDev) {
+    return path.resolve(currentDir, './algorithm/horarios_grupales.json')
+  } else {
+    return path.join(app.getPath('userData'), 'algorithm', 'horarios_grupales.json')
+  }
+}
+
+const getHorarioDocentePath = () => {
+  if (isDev) {
+    return path.resolve(currentDir, './algorithm/horarios_profesores.json')
+  } else {
+    return path.join(app.getPath('userData'), 'algorithm', 'horarios_profesores.json')
   }
 }
 
@@ -58,10 +73,55 @@ const initConfigFile = () => {
         matutino: [],
         vespertino: [],
       },
+      horarios: {
+        matutino: [],
+        vespertino: [],
+      },
     }
     fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2))
     console.log('Archivo de configuración creado en:', configPath)
   }
+}
+
+//leer archivos de horario
+const readHorariosGrupales = async () => {
+  const filePath = getHorarioGrupalPath()
+  if (!fs.existsSync(filePath)) return []
+  const data = await fs.promises.readFile(filePath, 'utf-8')
+  return JSON.parse(data)
+}
+
+const readHorariosDocentes = async () => {
+  const filePath = getHorarioDocentePath()
+  const contenido = await fs.promises.readFile(filePath, 'utf-8')
+  return JSON.parse(contenido)
+}
+
+//escribir archivo de horario
+const writeHorariosGrupales = async (data) => {
+  const filePath = getHorarioGrupalPath()
+  await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
+  await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
+}
+
+const getListaGrupos = async () => {
+  const data = await readHorariosGrupales()
+  return Object.keys(data)
+}
+
+const getHorarioPorGrupo = async (grupoId) => {
+  const data = await readHorariosGrupales()
+  return data[grupoId] || null
+}
+
+const getListaDocentes = async () => {
+  const data = await readHorariosDocentes()
+  return Object.keys(data) // nombres como "Acosta García Javier Alfonso"
+}
+
+const getHorarioPorDocente = async (nombreDocente) => {
+  const data = await readHorariosDocentes()
+  return data[nombreDocente] || null
 }
 
 let mainWindow
@@ -134,8 +194,36 @@ ipcMain.handle('read-config-file', () => {
         matutino: [],
         vespertino: [],
       },
+      horarios: {
+        matutino: [],
+        vespertino: [],
+      },
     }
   }
+})
+
+ipcMain.handle('leer-horarios-grupales', async () => {
+  return await readHorariosGrupales()
+})
+
+// Guardar horarios grupales
+ipcMain.handle('guardar-horarios-grupales', async (event, data) => {
+  return await writeHorariosGrupales(data)
+})
+
+ipcMain.handle('obtener-grupos-horarios', async () => {
+  return await getListaGrupos()
+})
+ipcMain.handle('obtener-horario-de-grupo', async (event, grupoId) => {
+  return await getHorarioPorGrupo(grupoId)
+})
+
+ipcMain.handle('obtener-docentes-horarios', async () => {
+  return await getListaDocentes()
+})
+
+ipcMain.handle('obtener-horario-de-docente', async (event, nombreDocente) => {
+  return await getHorarioPorDocente(nombreDocente)
 })
 
 ipcMain.handle('write-config-file', (_, config) => {
