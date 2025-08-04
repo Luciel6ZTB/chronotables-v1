@@ -206,6 +206,10 @@ ipcMain.handle('leer-horarios-grupales', async () => {
   return await readHorariosGrupales()
 })
 
+ipcMain.handle('leer-horarios-docentes', async () => {
+  return await readHorariosDocentes()
+})
+
 // Guardar horarios grupales
 ipcMain.handle('guardar-horarios-grupales', async (event, data) => {
   return await writeHorariosGrupales(data)
