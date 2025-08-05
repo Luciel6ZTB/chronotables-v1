@@ -1,30 +1,45 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
+import { useEditAulas } from 'src/composables/useEditAulas'
+
+const { asignarAulaEnGrupo } = useEditAulas()
+
 const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
 const props = defineProps({
   grupo: { type: String, required: true },
   horarioGrupal: { type: Object, required: false },
 })
+async function asignarAula() {
+  if (!detalle.value || !detalle.value.materia) return
+
+  const aula = prompt('Escribe el aula a asignar (ej: LAB-02):', detalle.value.aula || '')
+  if (!aula) return
+
+  await asignarAulaEnGrupo({
+    grupo: props.grupo,
+    materia: detalle.value.materia,
+    docente: detalle.value.docente,
+    aula,
+  })
+
+  drawer.value = false
+}
 
 const drawer = ref(false)
 const detalle = ref(null)
 const { horarioEstructura, cargarHorarioDesdeConfig } = readHorarioBuilder()
+
 watch(
-  () => props.grupo,
-  (nuevoGrupoId) => {
-    if (nuevoGrupoId) {
-      const turno = deducirTurno(nuevoGrupoId)
+  () => props.horarioGrupal,
+  (nuevoHorario) => {
+    if (nuevoHorario?.turno) {
+      const turno = nuevoHorario.turno.toLowerCase()
       cargarHorarioDesdeConfig(turno)
     }
   },
   { immediate: true },
 )
-
-function deducirTurno(grupoId) {
-  const letra = grupoId.slice(-1).toUpperCase()
-  return letra >= 'A' && letra <= 'F' ? 'matutino' : 'vespertino'
-}
 
 function abrirDetalle(celda) {
   if (!celda || !celda.materia) return
@@ -45,6 +60,7 @@ const rows = computed(() => {
           dia,
           docente: clase.docente || '',
           materia: clase.materia || '',
+          abreviatura: clase.abreviatura || '',
           aula: clase.aula || '',
         }
       }),
@@ -57,6 +73,13 @@ const columns = [
   { name: 'hora', label: 'Hora', align: 'center', field: 'hora' },
   ...dias.map((d) => ({ name: d.toLowerCase(), label: d, align: 'center' })),
 ]
+
+function abreviarNombre(nombre) {
+  if (!nombre) return ''
+  const partes = nombre.split(' ').filter(Boolean)
+  const nombreCorto = partes.slice(0, 3).join(' ')
+  return nombreCorto.length > 18 ? nombreCorto.slice(0, 16) + '…' : nombreCorto
+}
 
 function obtenerClasePorDia(clases, dia) {
   return clases?.find((c) => c.dia === dia)
@@ -105,12 +128,15 @@ function obtenerClasePorDia(clases, dia) {
             >
               <template v-if="obtenerClasePorDia(props.row.clases, dia)">
                 <div class="clase-titulo">
-                  {{ obtenerClasePorDia(props.row.clases, dia).docente }}
+                  {{ abreviarNombre(obtenerClasePorDia(props.row.clases, dia).docente) }}
                 </div>
+
                 <div class="clase-materia">
-                  {{ obtenerClasePorDia(props.row.clases, dia).materia }}
+                  {{ obtenerClasePorDia(props.row.clases, dia).abreviatura }}
                 </div>
-                <div class="clase-aula">{{ obtenerClasePorDia(props.row.clases, dia).aula }}</div>
+                <div class="clase-aula">
+                  {{ obtenerClasePorDia(props.row.clases, dia).aula }}
+                </div>
               </template>
             </q-td>
           </template>
@@ -138,7 +164,14 @@ function obtenerClasePorDia(clases, dia) {
           <div><b>Aula:</b> {{ detalle.aula }}</div>
           <div><b>Docente:</b> {{ detalle.docente }}</div>
         </div>
-        <q-btn icon="edit" color="primary" label="Editar" class="q-mt-lg" style="width: 100%" />
+        <q-btn
+          icon="edit"
+          color="primary"
+          label="Editar"
+          class="q-mt-lg"
+          style="width: 100%"
+          @click="asignarAula"
+        />
       </q-card>
     </q-dialog>
   </div>

@@ -44,6 +44,7 @@ const rows = computed(() => {
       return {
         dia,
         grupo: datosDia.grupo || '',
+        abreviatura: datosDia.abreviatura || '',
         materia: datosDia.materia || '',
         semestre: formatoSemestre(datosDia.semestre),
       }
@@ -112,7 +113,7 @@ function abrirDetalle(celda) {
               @click.stop="abrirDetalle(celda)"
             >
               <div class="clase-grupo">{{ celda.grupo }}</div>
-              <div class="clase-materia">{{ celda.materia }}</div>
+              <div class="clase-materia">{{ celda.abreviatura }}</div>
               <div class="clase-aula">{{ celda.semestre }}</div>
             </q-td>
           </template>

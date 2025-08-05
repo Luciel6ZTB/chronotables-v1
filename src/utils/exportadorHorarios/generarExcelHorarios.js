@@ -3,7 +3,7 @@ import {
   obtenerEstructuraDeBloques,
   getNombreSemestre,
   obtenerGruposPorSeccionYSemestreYTurno,
-} from 'src/utils/exportadorHorarios/estructuraHorarioSemestre'
+} from './estructuraHorarioSemestre'
 
 const COLOR_MATERIA = '000000'
 const COLOR_DOCENTE = 'C00000'
@@ -58,7 +58,7 @@ function generarTablaDeSemestre(
   semestre,
   totalCols,
 ) {
-  const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+  const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
   const colInicio = 0
 
   // Título de semestre (solo el nombre, izquierda)

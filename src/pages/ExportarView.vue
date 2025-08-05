@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { generarExcelHorarioGrupal } from 'src/utils/exportadorHorarios/generarExcelHorarios'
 import { generarPdfDocentes } from 'src/utils/exportadorHorarios/generarPdfDocente'
 import { generarPdfGrupos } from 'src/utils/exportadorHorarios/generarPdfGrupos'
+import { generarExcelDocente } from 'src/utils/exportadorHorarios/generarExcelDocente'
 
 const formato = ref(null)
 const tipoHorario = ref(null)
@@ -15,7 +16,7 @@ const exportarHorario = async () => {
   } else if (formato.value === 'pdf' && tipoHorario.value === 'general') {
     await generarPdfGrupos()
   } else {
-    console.log('still no method')
+    await generarExcelDocente()
   }
 }
 

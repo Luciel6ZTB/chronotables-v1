@@ -55,9 +55,7 @@ export function readHorarioBuilder() {
   }
 
   const getHorarioTexto = (horarios, bloque, tipo) => {
-    return (
-      horarios.find((h) => h.bloque === bloque && h.tipo === tipo)?.horario || `---` // puedes cambiar a `${fallbackNumero}:00` si quieres mostrar algo más útil
-    )
+    return horarios.find((h) => h.bloque === bloque && h.tipo === tipo)?.horario || `---`
   }
 
   return {
