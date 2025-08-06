@@ -1,35 +1,37 @@
-<template>
-  <q-card class="chronotables-card q-pa-lg text-center full-height-card">
-    <q-img class="logo-img" src="~assets/logos/logo1.png" style="height: 150px" />
-
-    <h2 class="text-h4 text-weight-bold q-mt-md q-mb-lg">CHRONOTABLES</h2>
-
-    <div class="chronotables-buttons">
-      <q-btn
-        class="chronotables-btn q-mb-sm"
-        color="primary"
-        size="lg"
-        label="Generar horario"
-        no-cap
-      />
-      <q-btn
-        class="chronotables-btn q-mb-sm"
-        color="secondary"
-        size="lg"
-        label="Construir horario"
-        no-caps
-        @click="openBuilder"
-      />
-    </div>
-  </q-card>
-  <ScheduleBuilderDialog v-model="builderDialog" />
-</template>
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import ScheduleBuilderDialog from './scheduleBuilder/SchedulerBuilderDialog.vue'
+import { useGeneradorHorarios } from 'src/composables/useGeneradorHorarios'
+
 const $q = useQuasar()
+const router = useRouter()
 const builderDialog = ref(false)
+const mostrarBotonGenerar = ref(false)
+
+const { generar, generando, exito } = useGeneradorHorarios()
+
+const verificarConfig = async () => {
+  try {
+    mostrarBotonGenerar.value = await window.electronAPI.invoke('verificar-config-existe')
+  } catch (err) {
+    console.error('Error al verificar config.json:', err)
+  }
+}
+
+const generarHorario = async () => {
+  await generar()
+  if (exito.value) {
+    router.push('/visualizacion')
+  } else {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al generar los horarios',
+      icon: 'error',
+    })
+  }
+}
 
 const openBuilder = () => {
   try {
@@ -43,7 +45,42 @@ const openBuilder = () => {
     })
   }
 }
+
+onMounted(verificarConfig)
 </script>
+<template>
+  <q-card class="chronotables-card q-pa-lg text-center full-height-card">
+    <q-img class="logo-img" src="~assets/logos/logo1.png" style="height: 150px" />
+
+    <h2 class="text-h4 text-weight-bold q-mt-md q-mb-lg">CHRONOTABLES</h2>
+
+    <div class="chronotables-buttons">
+      <q-btn
+        v-if="mostrarBotonGenerar"
+        class="chronotables-btn q-mb-sm"
+        :loading="generando"
+        color="primary"
+        size="lg"
+        label="Generar horario"
+        no-caps
+        @click="generarHorario"
+      >
+        <template v-slot:loading>
+          <q-spinner color="white" />
+        </template>
+      </q-btn>
+      <q-btn
+        class="chronotables-btn q-mb-sm"
+        color="secondary"
+        size="lg"
+        label="Construir horario"
+        no-caps
+        @click="openBuilder"
+      />
+    </div>
+  </q-card>
+  <ScheduleBuilderDialog v-model="builderDialog" />
+</template>
 
 <style scoped>
 .full-height-card {

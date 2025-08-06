@@ -182,6 +182,9 @@ export default defineConfig((/* ctx */) => {
         // protocol: 'myapp://path',
         // Windows only
         // win32metadata: { ... }
+        name: 'ChronoTables',
+        icon: 'src-electron/icons/bee_icon.ico', // tray icon
+        extraResource: ['src-electron/algorithm'],
       },
 
       builder: {
@@ -191,7 +194,8 @@ export default defineConfig((/* ctx */) => {
         extraResources: [
           {
             from: 'src-electron/algorithm',
-            to: 'algorithm',
+            to: './builder',
+            filter: ['**/*'],
           },
         ],
       },

@@ -55,7 +55,7 @@ export async function generarPdfDocentes() {
           return
         }
 
-        const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+        const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
         diasSemana.forEach((dia) => {
           const bloqueKey = bloque.numero.toString()
           const clase = datos.horario[dia]?.[bloqueKey]
@@ -151,7 +151,7 @@ export async function generarPdfDocentes() {
 
 function obtenerMateriasUnicas(horarioDocente) {
   const materiasMap = new Map()
-  const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+  const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
 
   diasSemana.forEach((dia) => {
     const bloquesDia = horarioDocente[dia] || {}

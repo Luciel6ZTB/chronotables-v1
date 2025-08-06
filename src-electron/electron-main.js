@@ -3,6 +3,8 @@ import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
+import fsExtra from 'fs-extra'
+import { exec } from 'node:child_process'
 import {
   obtenerGrupos,
   crearGrupo,
@@ -36,6 +38,16 @@ const getConfigPath = () => {
   }
 }
 
+const logPath = path.join(app.getPath('userData'), 'log.txt')
+
+// sobrescribir console.log para guardar en archivo
+const logStream = fs.createWriteStream(logPath, { flags: 'a' }) // append
+const originalConsoleLog = console.log
+console.log = (...args) => {
+  originalConsoleLog(...args)
+  logStream.write(`[${new Date().toISOString()}] ${args.join(' ')}\n`)
+}
+
 const getHorarioGrupalPath = () => {
   if (isDev) {
     return path.resolve(currentDir, './algorithm/horarios_grupales.json')
@@ -49,6 +61,14 @@ const getHorarioDocentePath = () => {
     return path.resolve(currentDir, './algorithm/horarios_profesores.json')
   } else {
     return path.join(app.getPath('userData'), 'algorithm', 'horarios_profesores.json')
+  }
+}
+
+const getGeneradorPath = () => {
+  if (isDev) {
+    return path.resolve(currentDir, './algorithm/index.js')
+  } else {
+    return path.join(app.getPath('userData'), 'algorithm', 'index.js')
   }
 }
 
@@ -83,8 +103,41 @@ const initConfigFile = () => {
   }
 }
 
+const initAlgorithmFiles = () => {
+  console.log(currentDir)
+  const sourceDir = path.join(currentDir, './algorithm')
+  const targetDir = path.join(app.getPath('userData'), 'algorithm')
+  // Crear carpeta destino si no existe
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true })
+  }
+
+  // Archivos y carpetas a copiar
+  const archivosIniciales = [
+    'index.js',
+    'db.js',
+    'horarios_grupales.json',
+    'horarios_profesores.json',
+    'models',
+    'package.json',
+    'node_modules',
+  ]
+
+  archivosIniciales.forEach((archivo) => {
+    const sourcePath = path.join(sourceDir, archivo)
+    const targetPath = path.join(targetDir, archivo)
+
+    if (!fs.existsSync(targetPath) && fs.existsSync(sourcePath)) {
+      fsExtra.copySync(sourcePath, targetPath, { overwrite: true })
+      console.log(`Copiado: ${archivo}`)
+    }
+  })
+}
+
 //leer archivos de horario
 const readHorariosGrupales = async () => {
+  console.log(currentDir)
+
   const filePath = getHorarioGrupalPath()
   if (!fs.existsSync(filePath)) return []
   const data = await fs.promises.readFile(filePath, 'utf-8')
@@ -92,6 +145,8 @@ const readHorariosGrupales = async () => {
 }
 
 const readHorariosDocentes = async () => {
+  console.log(currentDir)
+
   const filePath = getHorarioDocentePath()
   const contenido = await fs.promises.readFile(filePath, 'utf-8')
   return JSON.parse(contenido)
@@ -129,7 +184,7 @@ let mainWindow
 async function createWindow() {
   // Inicializar archivo de configuración
   initConfigFile()
-
+  initAlgorithmFiles()
   /**
    * Initial window options
    */
@@ -160,6 +215,7 @@ async function createWindow() {
     await mainWindow.loadFile('index.html')
   }
 
+  /*
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
     mainWindow.webContents.openDevTools()
@@ -169,6 +225,13 @@ async function createWindow() {
       mainWindow.webContents.closeDevTools()
     })
   }
+*/
+
+  mainWindow.webContents.openDevTools({ mode: 'detach' }) // o 'undocked', si prefieres
+
+  mainWindow.webContents.on('devtools-opened', () => {
+    mainWindow.focus()
+  })
 
   mainWindow.setMenu(null)
 
@@ -202,11 +265,37 @@ ipcMain.handle('read-config-file', () => {
   }
 })
 
+ipcMain.handle('verificar-config-existe', async () => {
+  const configPath = getConfigPath()
+  return fs.existsSync(configPath)
+})
+
+ipcMain.handle('generar-horarios', async () => {
+  const rutaArchivo = getGeneradorPath()
+
+  return new Promise((resolve) => {
+    exec(`node ${rutaArchivo}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error al generar horarios:', stderr)
+        resolve(false) // o reject(error) si quieres lanzar el error
+      } else {
+        console.log('Generación de horarios completada')
+        console.log(stdout)
+        resolve(true) // El algoritmo ya imprimió lo que necesitaba
+      }
+    })
+  })
+})
+
 ipcMain.handle('leer-horarios-grupales', async () => {
+  console.log(currentDir)
+
   return await readHorariosGrupales()
 })
 
 ipcMain.handle('leer-horarios-docentes', async () => {
+  console.log(currentDir)
+
   return await readHorariosDocentes()
 })
 
@@ -234,6 +323,8 @@ ipcMain.handle('write-config-file', (_, config) => {
   try {
     const configPath = getConfigPath()
     const configDir = path.dirname(configPath)
+    console.log(currentDir)
+    console.log(configPath)
 
     // Asegurar que el directorio existe
     if (!fs.existsSync(configDir)) {

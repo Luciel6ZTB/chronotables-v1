@@ -24,7 +24,7 @@ const routes = [
             name: 'ver-individual',
             component: () => import('pages/visualizacion/VerHorarioIndividual.vue'),
           },
-          { path: '', redirect: 'general' }, //tab predeterminada
+          { path: '', redirect: '/visualizacion/general' }, //tab predeterminada
         ],
       },
 

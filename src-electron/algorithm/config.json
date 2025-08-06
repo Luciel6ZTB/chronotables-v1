@@ -1,0 +1,105 @@
+{
+  "bloques_matutino": 8,
+  "bloques_vespertino": 7,
+  "bloque_inicio_vespertino": 8,
+  "bloque_fin_matutino": 8,
+  "recesos": {
+    "matutino": [
+      2
+    ],
+    "vespertino": [
+      10
+    ]
+  },
+  "horarios": {
+    "matutino": [
+      {
+        "bloque": 1,
+        "tipo": "clase",
+        "horario": "7:00 a 7:50"
+      },
+      {
+        "bloque": 2,
+        "tipo": "clase",
+        "horario": "7:50 a 8:40"
+      },
+      {
+        "bloque": "R",
+        "tipo": "receso",
+        "horario": "8:40 a 9:10"
+      },
+      {
+        "bloque": 3,
+        "tipo": "clase",
+        "horario": "9:10 a 10:00"
+      },
+      {
+        "bloque": 4,
+        "tipo": "clase",
+        "horario": "10:00 a 10:50"
+      },
+      {
+        "bloque": 5,
+        "tipo": "clase",
+        "horario": "10:50 a 11:40"
+      },
+      {
+        "bloque": 6,
+        "tipo": "clase",
+        "horario": "11:40 a 12:30"
+      },
+      {
+        "bloque": 7,
+        "tipo": "clase",
+        "horario": "12:30 a 13:20"
+      },
+      {
+        "bloque": 8,
+        "tipo": "clase",
+        "horario": "13:20 a 14:10"
+      }
+    ],
+    "vespertino": [
+      {
+        "bloque": 8,
+        "tipo": "clase",
+        "horario": "13:20 a 14:10"
+      },
+      {
+        "bloque": 9,
+        "tipo": "clase",
+        "horario": "14:10 a 15:00"
+      },
+      {
+        "bloque": 10,
+        "tipo": "clase",
+        "horario": "15:00 a 15:50"
+      },
+      {
+        "bloque": "R",
+        "tipo": "receso",
+        "horario": "15:50 a 16:20"
+      },
+      {
+        "bloque": 11,
+        "tipo": "clase",
+        "horario": "16:20 a 17:10"
+      },
+      {
+        "bloque": 12,
+        "tipo": "clase",
+        "horario": "17:10 a 18:00"
+      },
+      {
+        "bloque": 13,
+        "tipo": "clase",
+        "horario": "18:00 a 18:50"
+      },
+      {
+        "bloque": 14,
+        "tipo": "clase",
+        "horario": "18:50 a 19:40"
+      }
+    ]
+  }
+}

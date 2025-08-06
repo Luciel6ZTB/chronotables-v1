@@ -33,6 +33,6 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   readConfigFile: () => ipcRenderer.invoke('read-config-file'),
   writeConfigFile: (config) => ipcRenderer.invoke('write-config-file', config),
-
+  generarHorarios: () => ipcRenderer.invoke('generar-horarios'),
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
 })
