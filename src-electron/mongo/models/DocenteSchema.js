@@ -2,9 +2,8 @@ import mongoose from 'mongoose'
 
 const MateriaAsignadaSchema = new mongoose.Schema(
   {
-    id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'materias',
+    materia: {
+      type: String,
       required: true,
     },
     grupos_preferidos_asignar: {
@@ -18,6 +17,7 @@ const MateriaAsignadaSchema = new mongoose.Schema(
 const FortalecimientoSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
+    abreviatura: { type: String, required: true },
     horas: { type: Number, required: true },
   },
   { _id: false },
@@ -26,6 +26,7 @@ const FortalecimientoSchema = new mongoose.Schema(
 const DualSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
+    abreviatura: { type: String, required: true },
     semestre: { type: Number, required: true },
     horas_semanales: { type: Number, required: true },
   },
@@ -35,6 +36,7 @@ const DualSchema = new mongoose.Schema(
 const ExtracurricularSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
+    abreviatura: { type: String, required: true },
     horas: { type: Number, required: true },
   },
   { _id: false },
@@ -46,7 +48,7 @@ const DocenteSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    nombre_corto: {
+    abreviatura: {
       type: String,
       required: true,
     },
@@ -54,9 +56,10 @@ const DocenteSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    bloques_recomendados_asignar: {
+    // se cambia a opcional
+    bloques_recomendados_no_asignar: {
       type: [Number],
-      required: true,
+      default: undefined,
     },
     materias: {
       type: [MateriaAsignadaSchema],
@@ -76,7 +79,7 @@ const DocenteSchema = new mongoose.Schema(
     },
   },
   {
-    collection: 'docentes',
+    collection: 'profesores',
     versionKey: false,
   },
 )

@@ -1,4 +1,3 @@
-// src/composables/useEditAulas.js
 export function useEditAulas() {
   const asignarAulaEnGrupo = async ({ grupo, materia, docente, aula }) => {
     const data = await window.electronAPI.invoke('leer-horarios-grupales')

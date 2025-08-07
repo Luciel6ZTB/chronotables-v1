@@ -21,17 +21,22 @@ const gruposStore = useGruposStore()
 const localDocente = ref({
   id: '',
   nombre: '',
-  nombre_corto: '',
+  abreviatura: '',
   horas_semanales_totales: 0,
   materias: [],
   horas_fortalecimiento_academico: [],
   horas_dual: [],
-  bloques_recomendados_asignar: [],
+  horas_extracurriculares: [],
+  bloques_recomendados_no_asignar: [],
 })
 
 const materiasOptions = computed(() =>
-  materiasStore.materias.map((m) => ({ label: `${m.abreviatura}`, value: m.id })),
+  materiasStore.materias.map((m) => ({
+    label: m.abreviatura,
+    value: m.id?.toString?.() ?? m.id, // <- Asegura que es string
+  })),
 )
+
 const gruposOptions = computed(() =>
   gruposStore.grupos.map((g) => ({ label: g.nomenclatura, value: g.nomenclatura })),
 )
@@ -41,34 +46,45 @@ const fortalecimientoOptions = [
   'Tutorías',
   'Asesorías Académicas',
   'Asesorías de alumnos para concurso',
+  'Multidisciplinarias',
 ].map((f) => ({ label: f, value: f }))
 const semestreOptions = [1, 2, 3, 4, 5, 6]
 
 watch(
   () => props.modelValue,
-  (val) => {
+  async (val) => {
     if (val) {
+      // Esperar a que materias y grupos estén cargados si no lo están
+      if (!materiasStore.materias.length) await materiasStore.fetchMaterias?.()
+      if (!gruposStore.grupos.length) await gruposStore.cargarGrupos?.()
+
       if (props.docente) {
-        // Asegúrate que materias está definido y es array
-        ;(localDocente.value = {
+        const materiasNormalizadas = (props.docente.materias ?? []).map((m) => ({
+          ...m,
+          materia:
+            typeof m.materia === 'object' && m.materia.$oid
+              ? m.materia.$oid
+              : (m.materia.toString?.() ?? m.materia),
+        }))
+
+        localDocente.value = {
           ...JSON.parse(JSON.stringify(props.docente)),
-          materias: props.docente.materias ?? [],
+          materias: materiasNormalizadas,
           horas_fortalecimiento_academico: props.docente.horas_fortalecimiento_academico ?? [],
           horas_dual: props.docente.horas_dual ?? [],
-          bloques_recomendados_asignar: props.docente.bloques_recomendados_asignar ?? [],
           horas_extracurriculares: props.docente.horas_extracurriculares ?? [],
-        }),
-          console.log('extracurriculares:', props.docente.horas_extracurriculares)
+          bloques_recomendados_no_asignar: props.docente.bloques_recomendados_no_asignar ?? [],
+        }
       } else {
         localDocente.value = {
           nombre: '',
-          nombre_corto: '',
+          abreviatura: '',
           horas_semanales_totales: 0,
           materias: [],
           horas_fortalecimiento_academico: [],
           horas_dual: [],
-          bloques_recomendados_asignar: [],
           horas_extracurriculares: [],
+          bloques_recomendados_no_asignar: [],
         }
       }
     }
@@ -84,17 +100,36 @@ function eliminarMateria(index) {
 }
 
 function agregarFortalecimiento() {
-  localDocente.value.horas_fortalecimiento_academico.push({ nombre: '', horas: 1 })
+  localDocente.value.horas_fortalecimiento_academico.push({
+    nombre: '',
+    abreviatura: '',
+    horas: 1,
+  })
 }
 function eliminarFortalecimiento(index) {
   localDocente.value.horas_fortalecimiento_academico.splice(index, 1)
 }
 
 function agregarDual() {
-  localDocente.value.horas_dual.push({ nombre: '', semestre: null, horas_semanales: 1 })
+  localDocente.value.horas_dual.push({
+    nombre: '',
+    abreviatura: '',
+    semestre: null,
+    horas_semanales: 1,
+  })
 }
 function eliminarDual(index) {
   localDocente.value.horas_dual.splice(index, 1)
+}
+function agregarExtracurricular() {
+  localDocente.value.horas_extracurriculares.push({
+    nombre: '',
+    abreviatura: '',
+    horas: 1,
+  })
+}
+function eliminarExtracurricular(index) {
+  localDocente.value.horas_extracurriculares.splice(index, 1)
 }
 
 function cerrar() {
@@ -104,28 +139,35 @@ function cerrar() {
 function guardar() {
   const payload = JSON.parse(JSON.stringify(localDocente.value))
 
-  // Filtrar materias sin grupo asignado
-  payload.materias = payload.materias?.filter((m) => m.grupos_preferidos_asignar.length > 0)
+  payload.materias = payload.materias
+    ?.filter((m) => m.grupos_preferidos_asignar.length > 0)
+    .map(({ id, ...rest }) => ({
+      materia: id,
+      ...rest,
+    }))
 
-  // Si no hay fortalecimiento, eliminar el campo
-  if (
-    !payload.horas_fortalecimiento_academico ||
-    payload.horas_fortalecimiento_academico.length === 0
-  ) {
+  if (!payload.materias || payload.materias.length === 0) {
+    delete payload.materias
+  }
+
+  // Fortalecimiento: quitar si vacío
+  if (!payload.horas_fortalecimiento_academico?.length) {
     delete payload.horas_fortalecimiento_academico
   }
 
-  // Si no hay dual, eliminar el campo
-  if (!payload.horas_dual || payload.horas_dual.length === 0) {
+  // Dual: quitar si vacío
+  if (!payload.horas_dual?.length) {
     delete payload.horas_dual
   }
 
-  if (!payload.bloques_recomendados_asignar || payload.bloques_recomendados_asignar.length === 0) {
-    delete payload.bloques_recomendados_asignar
+  // Extracurriculares: quitar si vacío
+  if (!payload.horas_extracurriculares?.length) {
+    delete payload.horas_extracurriculares
   }
 
-  if (!payload.horas_extracurriculares || payload.horas_extracurriculares.length === 0) {
-    delete payload.horas_extracurriculares
+  // Bloques no asignar: quitar si vacío
+  if (!payload.bloques_recomendados_no_asignar?.length) {
+    delete payload.bloques_recomendados_no_asignar
   }
 
   console.log('[Docente creado]', payload)
@@ -142,7 +184,7 @@ function guardar() {
         <q-input v-model="localDocente.nombre" label="Nombre completo" outlined dense required />
 
         <q-input
-          v-model="localDocente.nombre_corto"
+          v-model="localDocente.abreviatura"
           label="Abreviatura"
           maxlength="20"
           outlined
@@ -161,9 +203,9 @@ function guardar() {
         />
 
         <q-select
-          v-model="localDocente.bloques_recomendados_asignar"
+          v-model="localDocente.bloques_recomendados_no_asignar"
           :options="[...Array(13).keys()].map((n) => n + 1)"
-          label="Bloques preferidos para asignar"
+          label="Bloques preferidos no asignar"
           multiple
           emit-value
           map-options
@@ -178,9 +220,8 @@ function guardar() {
             :key="idx"
             class="q-mb-md q-gutter-sm"
           >
-            <!-- TODO: Cambiar por ID -->
             <q-select
-              v-model="materia.id"
+              v-model="materia.materia"
               :options="materiasOptions"
               label="Materia"
               emit-value
@@ -221,6 +262,8 @@ function guardar() {
               outlined
               dense
             />
+            <q-input v-model="fort.abreviatura" label="Abreviatura" outlined dense maxlength="10" />
+
             <q-input
               class="q-pb-sm"
               v-model.number="fort.horas"
@@ -242,15 +285,8 @@ function guardar() {
             :key="idx"
             class="q-mb-md q-gutter-sm"
           >
-            <q-select
-              v-model="dual.nombre"
-              :options="materiasOptions"
-              label="Materia"
-              emit-value
-              map-options
-              outlined
-              dense
-            />
+            <q-input v-model="dual.nombre" label="Nombre de materia dual" outlined dense />
+            <q-input v-model="dual.abreviatura" label="Abreviatura" outlined dense maxlength="10" />
             <q-select
               v-model.number="dual.semestre"
               :options="semestreOptions"
@@ -289,19 +325,11 @@ function guardar() {
               outlined
               dense
             />
-            <q-btn
-              flat
-              icon="delete"
-              color="negative"
-              @click="localDocente.horas_extracurriculares.splice(idx, 1)"
-            />
+            <q-input v-model="extra.abreviatura" label="Abreviatura" outlined dense />
+
+            <q-btn flat icon="delete" color="negative" @click="eliminarExtracurricular(idx)" />
           </div>
-          <q-btn
-            flat
-            label="Agregar extracurricular"
-            icon="add"
-            @click="localDocente.horas_extracurriculares.push({ nombre: '', horas: 1 })"
-          />
+          <q-btn flat label="Agregar extracurricular" icon="add" @click="agregarExtracurricular" />
         </div>
       </q-card-section>
 

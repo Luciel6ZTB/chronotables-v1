@@ -5,8 +5,8 @@ const props = defineProps({
   materias: Array,
   selectedMateria: Object,
 })
-const emit = defineEmits(['select-materia'])
 
+const emit = defineEmits(['select-materia'])
 const selectedGrade = ref('Todos')
 const currentPage = ref(1)
 const itemsPerPage = 8

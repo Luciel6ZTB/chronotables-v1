@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const uri = 'mongodb://localhost:27017/timetables_system'
+const uri = 'mongodb://localhost:27017/horariosDB'
 
 let isConnected = false
 

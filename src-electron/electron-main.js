@@ -3,7 +3,6 @@ import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
-import fsExtra from 'fs-extra'
 import { exec } from 'node:child_process'
 import {
   obtenerGrupos,
@@ -23,36 +22,40 @@ import {
   editarDocente,
   eliminarDocente,
 } from './mongo/controllers/docentesController'
+import {
+  obtenerAulas,
+  crearAula,
+  actualizarAula,
+  eliminarAula,
+} from './mongo/controllers/aulasController'
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 const isDev = process.env.DEV
 
-// Obtener ruta
+// Obtener rutas
+const getResourcesPath = () => {
+  // En desarrollo usamos currentDir
+  if (isDev) return currentDir
+
+  // En producción: resources/algorithm (relativo al ejecutable)
+  return path.join(process.resourcesPath, 'algorithm')
+}
+
 const getConfigPath = () => {
   if (isDev) {
     return path.resolve(currentDir, './algorithm/config.json')
   } else {
-    // En producción: userData/algorithm/config.json
-    return path.join(app.getPath('userData'), 'algorithm', 'config.json')
+    // Cambiado de userData a resources/algorithm
+    return path.join(getResourcesPath(), 'config.json')
   }
-}
-
-const logPath = path.join(app.getPath('userData'), 'log.txt')
-
-// sobrescribir console.log para guardar en archivo
-const logStream = fs.createWriteStream(logPath, { flags: 'a' }) // append
-const originalConsoleLog = console.log
-console.log = (...args) => {
-  originalConsoleLog(...args)
-  logStream.write(`[${new Date().toISOString()}] ${args.join(' ')}\n`)
 }
 
 const getHorarioGrupalPath = () => {
   if (isDev) {
     return path.resolve(currentDir, './algorithm/horarios_grupales.json')
   } else {
-    return path.join(app.getPath('userData'), 'algorithm', 'horarios_grupales.json')
+    return path.join(getResourcesPath(), 'horarios_grupales.json')
   }
 }
 
@@ -60,7 +63,7 @@ const getHorarioDocentePath = () => {
   if (isDev) {
     return path.resolve(currentDir, './algorithm/horarios_profesores.json')
   } else {
-    return path.join(app.getPath('userData'), 'algorithm', 'horarios_profesores.json')
+    return path.join(getResourcesPath(), 'horarios_profesores.json')
   }
 }
 
@@ -68,7 +71,7 @@ const getGeneradorPath = () => {
   if (isDev) {
     return path.resolve(currentDir, './algorithm/index.js')
   } else {
-    return path.join(app.getPath('userData'), 'algorithm', 'index.js')
+    return path.join(getResourcesPath(), 'index.js')
   }
 }
 
@@ -101,37 +104,6 @@ const initConfigFile = () => {
     fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2))
     console.log('Archivo de configuración creado en:', configPath)
   }
-}
-
-const initAlgorithmFiles = () => {
-  console.log(currentDir)
-  const sourceDir = path.join(currentDir, './algorithm')
-  const targetDir = path.join(app.getPath('userData'), 'algorithm')
-  // Crear carpeta destino si no existe
-  if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true })
-  }
-
-  // Archivos y carpetas a copiar
-  const archivosIniciales = [
-    'index.js',
-    'db.js',
-    'horarios_grupales.json',
-    'horarios_profesores.json',
-    'models',
-    'package.json',
-    'node_modules',
-  ]
-
-  archivosIniciales.forEach((archivo) => {
-    const sourcePath = path.join(sourceDir, archivo)
-    const targetPath = path.join(targetDir, archivo)
-
-    if (!fs.existsSync(targetPath) && fs.existsSync(sourcePath)) {
-      fsExtra.copySync(sourcePath, targetPath, { overwrite: true })
-      console.log(`Copiado: ${archivo}`)
-    }
-  })
 }
 
 //leer archivos de horario
@@ -184,7 +156,6 @@ let mainWindow
 async function createWindow() {
   // Inicializar archivo de configuración
   initConfigFile()
-  initAlgorithmFiles()
   /**
    * Initial window options
    */
@@ -264,6 +235,33 @@ ipcMain.handle('read-config-file', () => {
     }
   }
 })
+//horario grupal solo editar un grupo
+ipcMain.handle('editar-aula-horario', async (event, { grupo, materia, docente, aula }) => {
+  const filePath = getHorarioGrupalPath()
+
+  try {
+    const data = JSON.parse(await fs.promises.readFile(filePath, 'utf-8'))
+
+    if (!data[grupo]) throw new Error(`Grupo ${grupo} no encontrado`)
+
+    const horarioGrupo = data[grupo].horario
+
+    for (const dia of Object.keys(horarioGrupo)) {
+      for (const bloque of Object.keys(horarioGrupo[dia])) {
+        const celda = horarioGrupo[dia][bloque]
+        if (celda.materia === materia && celda.docente === docente) {
+          celda.aula = aula
+        }
+      }
+    }
+
+    await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
+    return { ok: true }
+  } catch (err) {
+    console.error('Error actualizando aula:', err)
+    return { ok: false, error: err.message }
+  }
+})
 
 ipcMain.handle('verificar-config-existe', async () => {
   const configPath = getConfigPath()
@@ -288,14 +286,10 @@ ipcMain.handle('generar-horarios', async () => {
 })
 
 ipcMain.handle('leer-horarios-grupales', async () => {
-  console.log(currentDir)
-
   return await readHorariosGrupales()
 })
 
 ipcMain.handle('leer-horarios-docentes', async () => {
-  console.log(currentDir)
-
   return await readHorariosDocentes()
 })
 
@@ -323,9 +317,6 @@ ipcMain.handle('write-config-file', (_, config) => {
   try {
     const configPath = getConfigPath()
     const configDir = path.dirname(configPath)
-    console.log(currentDir)
-    console.log(configPath)
-
     // Asegurar que el directorio existe
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true })
@@ -354,6 +345,10 @@ ipcMain.handle('get-docentes', async () => {
   return await obtenerDocentes()
 })
 
+ipcMain.handle('get-aula', async () => {
+  return await obtenerAulas()
+})
+
 //crear
 ipcMain.handle('create-grupo', async (_event, grupoData) => {
   return await crearGrupo(grupoData)
@@ -363,6 +358,9 @@ ipcMain.handle('create-materia', async (_event, data) => {
 })
 ipcMain.handle('create-docente', async (_event, docenteData) => {
   return await crearDocente(docenteData)
+})
+ipcMain.handle('create-aula', async (_event, aulaData) => {
+  return await crearAula(aulaData)
 })
 
 //editar
@@ -375,6 +373,9 @@ ipcMain.handle('update-materia', async (_event, id, data) => {
 ipcMain.handle('update-docente', async (_event, { id, datosActualizados }) => {
   return await editarDocente(id, datosActualizados)
 })
+ipcMain.handle('update-aula', async (_event, id, datosActualizados) => {
+  return await actualizarAula(id, datosActualizados)
+})
 
 //eliminar
 ipcMain.handle('delete-grupo', async (_event, id) => {
@@ -385,6 +386,9 @@ ipcMain.handle('delete-materia', async (_event, id) => {
 })
 ipcMain.handle('delete-docente', async (_event, id) => {
   return await eliminarDocente(id)
+})
+ipcMain.handle('delete-aula', async (_event, id) => {
+  return await eliminarAula(id)
 })
 
 app.whenReady().then(createWindow)

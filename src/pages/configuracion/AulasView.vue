@@ -1,19 +1,21 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { aulasMock } from 'src/mockups/index'
+import { ref, onMounted, computed } from 'vue'
+import { useAulasStore } from 'src/stores/aulasStore'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigRoomCard from 'components/ConfigRoomCard.vue'
 import ConfigFormRoom from 'components/forms/ConfigFormRoom.vue'
 import DeleteWarning from 'components/DeleteWarning.vue'
 
-const aulas = ref([])
 const selectedAula = ref(null)
 const showForm = ref(false)
 const editingAula = ref(null)
 const showDeleteWarning = ref(false)
 
+const storeAulas = useAulasStore()
+const aulas = computed(() => storeAulas.aulas)
+
 onMounted(() => {
-  aulas.value = [...aulasMock]
+  storeAulas.cargarAulas()
 })
 
 function onAgregar() {
@@ -31,17 +33,18 @@ function onEliminar() {
     showDeleteWarning.value = true
   }
 }
-function onConfirmDelete() {
-  aulas.value = aulas.value.filter((a) => a.id !== selectedAula.value.id)
-  selectedAula.value = null
-  showDeleteWarning.value = false
+async function onConfirmDelete() {
+  if (selectedAula.value?.id) {
+    await storeAulas.eliminarAula(selectedAula.value.id)
+    selectedAula.value = null
+    showDeleteWarning.value = false
+  }
 }
-function onGuardar(aula) {
+async function onGuardar(aula) {
   if (aula.id) {
-    const idx = aulas.value.findIndex((a) => a.id === aula.id)
-    if (idx >= 0) aulas.value[idx] = { ...aula }
+    await storeAulas.editarAula(aula.id, aula)
   } else {
-    aulas.value.push({ ...aula, id: Date.now() })
+    await storeAulas.agregarAula(aula)
   }
   showForm.value = false
   selectedAula.value = null

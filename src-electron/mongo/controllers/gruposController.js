@@ -1,17 +1,15 @@
 import { connectToDatabase } from '../db'
-import Grupo from '../models/GrupoSchema' // importa el modelo mongoose
+import Grupo from '../models/GrupoSchema'
 
-// GET: Obtener todos los grupos
 export async function obtenerGrupos() {
   await connectToDatabase()
-  const grupos = await Grupo.find().lean() // lean() para objeto plano
+  const grupos = await Grupo.find().lean()
   return grupos.map((g) => ({
     ...g,
-    _id: g._id.toString(), // importante convertir a string para el frontend
+    _id: g._id.toString(),
   }))
 }
 
-// POST: Crear un grupo
 export async function crearGrupo(grupoData) {
   await connectToDatabase()
   const nuevoGrupo = new Grupo(grupoData)
@@ -22,11 +20,10 @@ export async function crearGrupo(grupoData) {
   }
 }
 
-// PUT: Editar un grupo
 export async function editarGrupo(id, datosActualizados) {
   await connectToDatabase()
   const grupo = await Grupo.findByIdAndUpdate(id, datosActualizados, {
-    new: true, // retorna el documento actualizado
+    new: true,
     lean: true,
   })
   return {
@@ -35,7 +32,6 @@ export async function editarGrupo(id, datosActualizados) {
   }
 }
 
-// DELETE: Eliminar un grupo
 export async function eliminarGrupo(id) {
   await connectToDatabase()
   const grupo = await Grupo.findByIdAndDelete(id)

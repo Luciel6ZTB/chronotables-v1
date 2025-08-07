@@ -1,33 +1,29 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { readHorarioBuilder } from 'src/composables/readHorarioBuilder'
-import { useEditAulas } from 'src/composables/useEditAulas'
-
-const { asignarAulaEnGrupo } = useEditAulas()
+import { useAulasGrupales } from 'src/composables/useAsignacionAulas'
+import { useAulaStore } from 'src/stores/aulasStore'
 
 const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
+
 const props = defineProps({
   grupo: { type: String, required: true },
   horarioGrupal: { type: Object, required: false },
 })
-async function asignarAula() {
-  if (!detalle.value || !detalle.value.materia) return
 
-  const aula = prompt('Escribe el aula a asignar (ej: LAB-02):', detalle.value.aula || '')
-  if (!aula) return
-
-  await asignarAulaEnGrupo({
-    grupo: props.grupo,
-    materia: detalle.value.materia,
-    docente: detalle.value.docente,
-    aula,
-  })
-
-  drawer.value = false
-}
+const emit = defineEmits(['actualizarHorario'])
 
 const drawer = ref(false)
 const detalle = ref(null)
+const aulaSeleccionada = ref(null)
+
+const aulasStore = useAulaStore()
+const { editarAulaHorario } = useAulasGrupales()
+
+onMounted(() => {
+  aulasStore.cargarAulas()
+})
+
 const { horarioEstructura, cargarHorarioDesdeConfig } = readHorarioBuilder()
 
 watch(
@@ -44,8 +40,31 @@ watch(
 function abrirDetalle(celda) {
   if (!celda || !celda.materia) return
   detalle.value = celda
+  aulaSeleccionada.value = celda.aula || null
   drawer.value = true
 }
+
+const asignarAula = async () => {
+  if (!detalle.value || !aulaSeleccionada.value) return
+  const { materia, docente } = detalle.value
+  const respuesta = await editarAulaHorario({
+    grupo: props.grupo,
+    materia,
+    docente,
+    aula: aulaSeleccionada.value,
+  })
+
+  if (respuesta.ok) {
+    console.log('Aula actualizada correctamente')
+    detalle.value.aula = aulaSeleccionada.value
+    drawer.value = false
+
+    emit('actualizarHorario')
+  } else {
+    console.error('Error al asignar aula:', respuesta.error)
+  }
+}
+
 const rows = computed(() => {
   if (!horarioEstructura.value.length || !props.horarioGrupal) return []
 
@@ -98,7 +117,6 @@ function obtenerClasePorDia(clases, dia) {
       :style="{ margin: '0 auto' }"
       :pagination="{ rowsPerPage: 0 }"
     >
-      <!-- Encabezado personalizado -->
       <template #header="props">
         <q-tr :props="props">
           <q-th class="bloque-header">TIEMPO</q-th>
@@ -108,17 +126,14 @@ function obtenerClasePorDia(clases, dia) {
           </q-th>
         </q-tr>
       </template>
-      <!-- Fila -->
+
       <template #body="props">
         <q-tr :props="props" :class="{ 'receso-row': props.row.receso }">
-          <q-td class="bloque-cell">
-            {{ props.row.bloque }}
+          <q-td class="bloque-cell">{{ props.row.bloque }}</q-td>
+          <q-td class="hora-cell" :style="props.row.receso ? 'background:#6a4c2b;color:#fff' : ''">
+            {{ props.row.hora }}
           </q-td>
-          <q-td
-            class="hora-cell"
-            :style="props.row.receso ? 'background:#6a4c2b;color:#fff' : ''"
-            >{{ props.row.hora }}</q-td
-          >
+
           <template v-if="!props.row.receso">
             <q-td
               v-for="dia in dias"
@@ -130,7 +145,6 @@ function obtenerClasePorDia(clases, dia) {
                 <div class="clase-titulo">
                   {{ abreviarNombre(obtenerClasePorDia(props.row.clases, dia).docente) }}
                 </div>
-
                 <div class="clase-materia">
                   {{ obtenerClasePorDia(props.row.clases, dia).abreviatura }}
                 </div>
@@ -141,13 +155,13 @@ function obtenerClasePorDia(clases, dia) {
             </q-td>
           </template>
           <template v-else>
-            <q-td class="receso-cell" colspan="5"> RECESO </q-td>
+            <q-td class="receso-cell" colspan="5">RECESO</q-td>
           </template>
         </q-tr>
       </template>
     </q-table>
 
-    <!-- Dialog de detalles -->
+    <!-- Dialog Detalle -->
     <q-dialog
       v-model="drawer"
       persistent
@@ -156,20 +170,32 @@ function obtenerClasePorDia(clases, dia) {
     >
       <q-card class="drawer-card">
         <div class="row items-center justify-between" style="width: 100%">
-          <div class="text-h6 q-mb-md">Detalles de la celda</div>
+          <div class="text-h6 q-mb-md">Detalles de la clase</div>
           <q-btn icon="close" flat round dense @click="drawer = false" />
         </div>
+
         <div v-if="detalle">
           <div><b>Materia:</b> {{ detalle.materia }}</div>
-          <div><b>Aula:</b> {{ detalle.aula }}</div>
           <div><b>Docente:</b> {{ detalle.docente }}</div>
+          <div class="q-mt-sm">
+            <q-select
+              dense
+              filled
+              label="Aula"
+              v-model="aulaSeleccionada"
+              :options="aulasStore.aulas.map((a) => a.clave)"
+              :loading="aulasStore.cargando"
+              emit-value
+              map-options
+            />
+          </div>
         </div>
+
         <q-btn
-          icon="edit"
+          icon="check"
           color="primary"
-          label="Editar"
-          class="q-mt-lg"
-          style="width: 100%"
+          label="Guardar cambios"
+          class="q-mt-lg full-width"
           @click="asignarAula"
         />
       </q-card>
@@ -187,8 +213,7 @@ function obtenerClasePorDia(clases, dia) {
 .horario-table {
   background: #222;
   border: 2px solid #222;
-  min-width: 790px;
-  max-width: 830px;
+  min-width: 850px;
   width: 100%;
   box-shadow: 0 1px 6px #0001;
 }

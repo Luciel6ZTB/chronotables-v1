@@ -2,17 +2,17 @@ export class Docente {
   constructor({
     _id,
     nombre,
-    nombre_corto,
+    abreviatura,
     horas_semanales_totales,
     materias,
     horas_fortalecimiento_academico,
     horas_dual,
     horas_extracurriculares,
-    bloques_recomendados_asignar,
+    bloques_recomendados_no_asignar,
   }) {
     this.id = _id?.$oid || _id?.toString?.() || _id || null
     this.nombre = nombre ?? ''
-    this.nombre_corto = nombre_corto ?? ''
+    this.abreviatura = abreviatura ?? ''
     this.horas_semanales_totales = horas_semanales_totales ?? 0
 
     // Todos los campos opcionales inicializan como undefined si no se usaron
@@ -25,20 +25,25 @@ export class Docente {
       ? horas_extracurriculares
       : undefined
 
-    this.bloques_recomendados_asignar = Array.isArray(bloques_recomendados_asignar)
-      ? bloques_recomendados_asignar
-      : []
+    this.bloques_recomendados_no_asignar = Array.isArray(bloques_recomendados_no_asignar)
+      ? bloques_recomendados_no_asignar
+      : undefined
   }
 
   toPayload() {
     const payload = {
       nombre: this.nombre,
-      nombre_corto: this.nombre_corto,
+      abreviatura: this.abreviatura,
       horas_semanales_totales: this.horas_semanales_totales,
-      bloques_recomendados_asignar: this.bloques_recomendados_asignar,
     }
 
-    // Solo añadir si existen (por ejemplo, si se presionó el botón para agregarlos)
+    if (
+      Array.isArray(this.bloques_recomendados_no_asignar) &&
+      this.bloques_recomendados_no_asignar.length > 0
+    ) {
+      payload.bloques_recomendados_no_asignar = this.bloques_recomendados_no_asignar
+    }
+
     if (Array.isArray(this.materias) && this.materias.length > 0) {
       payload.materias = this.materias
     }

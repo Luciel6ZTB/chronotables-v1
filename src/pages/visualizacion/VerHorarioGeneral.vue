@@ -45,6 +45,7 @@ watch(grupoSeleccionado, async (nuevoGrupoId) => {
       v-if="grupoSeleccionado && horarioGrupoSeleccionado"
       :grupo="grupoSeleccionado"
       :horarioGrupal="horarioGrupoSeleccionado"
+      @actualizarHorario="() => cargarHorarioDeGrupo(grupoSeleccionado)"
     />
 
     <div v-else class="q-mt-xl text-center text-subtitle1 text-grey-7">

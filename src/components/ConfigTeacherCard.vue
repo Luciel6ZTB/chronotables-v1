@@ -17,8 +17,8 @@ const filteredDocentes = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return props.docentes.filter(
     (docente) =>
-      docente.nombre_completo.toLowerCase().includes(query) ||
-      (docente.nombre_corto && docente.nombre_corto.toLowerCase().includes(query)),
+      docente.nombre.toLowerCase().includes(query) ||
+      (docente.abreviatura && docente.abreviatura.toLowerCase().includes(query)),
   )
 })
 
@@ -87,7 +87,7 @@ watch(searchQuery, () => {
           "
           style="cursor: pointer"
         >
-          <div class="text-subtitle1">{{ docente.nombre_corto }}</div>
+          <div class="text-subtitle1">{{ docente.abreviatura }}</div>
         </div>
         <div
           v-if="filteredDocentes.length === 0"

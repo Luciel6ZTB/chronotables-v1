@@ -6,7 +6,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['select-aula'])
 const currentPage = ref(1)
-const itemsPerPage = 8
+const itemsPerPage = 9
 
 const paginatedAulas = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
@@ -18,7 +18,7 @@ const totalPages = computed(() => {
 })
 </script>
 <template>
-  <q-card class="config-subjects-card q-pa-lg full-height-card">
+  <q-card class="config-subjects-card q-pa-lg full-height-card" @click="emit('select-aula', null)">
     <h2 class="text-h4 text-weight-bold q-mb-sm q-ma-none">Lista de Aulas</h2>
     <p class="text-body1 q-mb-lg">Maneja las materias dentro de tu institución.</p>
 
@@ -37,12 +37,12 @@ const totalPages = computed(() => {
         />
       </div>
       <!--lista de entidad-->
-      <div class="teachers-list-grid q-pa-md" @click="emit('select-aula', null)">
+      <div class="teachers-list-grid q-pa-md">
         <div
           v-for="aula in paginatedAulas"
           :key="aula.id"
           class="teacher-card"
-          :class="{ selected: selectedAula && selectedAula.id === aula.id }"
+          :class="{ selected: selectedAula?.id?.toString() === aula.id?.toString() }"
           @click.stop="
             emit('select-aula', selectedAula && selectedAula.id === aula.id ? null : aula)
           "
@@ -54,13 +54,6 @@ const totalPages = computed(() => {
     </div>
   </q-card>
 </template>
-
-<script>
-export default {
-  name: 'ConfigSubjectCard',
-}
-</script>
-
 <style scoped>
 .full-height-card {
   flex: 1;
