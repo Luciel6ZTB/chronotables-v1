@@ -410,12 +410,6 @@ export default {
       localStorage.setItem('schedule-template-config', JSON.stringify(templateConfig))
 
       this.$emit('configuration-saved', { algorithmConfig, templateConfig })
-
-      this.$q.notify({
-        type: 'positive',
-        message: 'Configuración guardada exitosamente',
-        icon: 'save',
-      })
     },
 
     loadConfiguration() {

@@ -21,7 +21,6 @@ function cancelEdit() {
 }
 
 function viewPDF() {
-  // Pasas la data actual (ya sea editando o guardada)
   const dataToExport = isEditing.value ? localData.value : schoolStore
   generateSchoolInfoPDF(dataToExport)
 }

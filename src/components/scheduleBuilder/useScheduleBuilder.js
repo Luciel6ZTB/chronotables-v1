@@ -1,12 +1,9 @@
 import { ref, computed, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
 
 let state
 
 export function useScheduleBuilder(emit) {
   if (state) return state
-
-  const $q = useQuasar()
 
   const isElectron = () => {
     try {
@@ -258,13 +255,6 @@ export function useScheduleBuilder(emit) {
 
     const success = await writeConfig(full)
     if (success && emit) emit('configuration-saved', full)
-
-    $q.notify({
-      type: success ? 'positive' : 'negative',
-      message: success ? 'Configuración guardada' : 'Error al guardar',
-      icon: success ? 'save' : 'error',
-      timeout: 2000,
-    })
 
     return success
   }

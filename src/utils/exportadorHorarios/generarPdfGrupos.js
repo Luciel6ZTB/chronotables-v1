@@ -76,7 +76,7 @@ export async function generarPdfGrupos() {
       // Línea 3 derecha: Periodo
       doc.setFontSize(11)
       doc.setFont('helvetica', 'normal')
-      doc.text(schoolStore.period, 190, 25, { align: 'right' })
+      doc.text(schoolStore.period, 190, 30, { align: 'right' })
       //Linea 4
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
@@ -88,7 +88,7 @@ export async function generarPdfGrupos() {
         `Carrera: ${grupo.carrera.trim()}`,
       ].join(' | ')
 
-      doc.setFontSize(9)
+      doc.setFontSize(12)
       doc.text(infoLinea, 105, 35, { align: 'center' })
 
       // E. Preparar datos de la tabla (solución definitiva al [object Object])
