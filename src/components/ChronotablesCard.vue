@@ -4,11 +4,13 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import ScheduleBuilderDialog from './scheduleBuilder/SchedulerBuilderDialog.vue'
 import { useGeneradorHorarios } from 'src/composables/useGeneradorHorarios'
+import { useUserStore } from 'src/stores/userStore'
 
 const $q = useQuasar()
 const router = useRouter()
 const builderDialog = ref(false)
 const mostrarBotonGenerar = ref(false)
+const userStore = useUserStore()
 
 const { generar, generando, exito } = useGeneradorHorarios()
 
@@ -56,7 +58,7 @@ onMounted(verificarConfig)
 
     <div class="chronotables-buttons">
       <q-btn
-        v-if="mostrarBotonGenerar"
+        v-if="mostrarBotonGenerar && userStore.isAdmin"
         class="chronotables-btn q-mb-sm"
         :loading="generando"
         color="primary"

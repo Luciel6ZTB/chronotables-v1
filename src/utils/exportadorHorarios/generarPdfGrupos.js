@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { schoolStore } from 'src/stores/useSchoolStore'
 
 export async function generarPdfGrupos() {
   try {
@@ -62,18 +63,33 @@ export async function generarPdfGrupos() {
       }
 
       // D. Encabezado del grupo
+      // Línea 1: Escuela (centro)
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text(schoolStore.institution, 105, 15, { align: 'center' })
+
+      // Línea 2: Plantel (centro)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(schoolStore.campus, 105, 20, { align: 'center' })
+
+      // Línea 3 derecha: Periodo
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.text(schoolStore.period, 190, 25, { align: 'right' })
+      //Linea 4
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
-      doc.text(`Horario del Grupo ${grupo.grupo}`, 105, 15, { align: 'center' })
+      doc.text(`${grupo.grupo}`, 30, 30, { align: 'center' })
 
       const infoLinea = [
-        `${getOrdinalNumber(grupo.semestre)} Semestre`,
+        //`${getOrdinalNumber(grupo.semestre)} Semestre`,
         `Turno: ${grupo.turno}`,
         `Carrera: ${grupo.carrera.trim()}`,
       ].join(' | ')
 
       doc.setFontSize(9)
-      doc.text(infoLinea, 105, 22, { align: 'center' })
+      doc.text(infoLinea, 105, 35, { align: 'center' })
 
       // E. Preparar datos de la tabla (solución definitiva al [object Object])
       const headers = ['Hora', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']
@@ -129,8 +145,8 @@ export async function generarPdfGrupos() {
       autoTable(doc, {
         head: [headers],
         body: body,
-        startY: 28,
-        margin: { left: 10, right: 10 },
+        startY: 40,
+        margin: { left: 15, right: 15 },
         styles: {
           fontSize: 7,
           cellPadding: 1.5,
@@ -184,10 +200,10 @@ export async function generarPdfGrupos() {
 }
 
 // Función auxiliar para número ordinal (1ro, 2do, etc.)
-function getOrdinalNumber(num) {
-  const suffixes = ['ero', 'do', 'ro', 'to', 'to', 'to', 'mo', 'vo', 'vo', 'no']
-  return num === 1 ? '1er' : `${num}${suffixes[num - 1] || 'to'}`
-}
+//function getOrdinalNumber(num) {
+//  const suffixes = ['ero', 'do', 'ro', 'to', 'to', 'to', 'mo', 'vo', 'vo', 'no']
+//  return num === 1 ? '1er' : `${num}${suffixes[num - 1] || 'to'}`
+//}
 
 // Obtener lista única de materias y docentes
 function obtenerMateriasDocentes(horarioGrupo) {

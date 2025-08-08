@@ -442,12 +442,6 @@ export default {
           }
 
           this.updateScheduleDisplay()
-
-          this.$q.notify({
-            type: 'positive',
-            message: 'Configuración cargada exitosamente',
-            icon: 'upload',
-          })
         } else {
           this.$q.notify({
             type: 'warning',

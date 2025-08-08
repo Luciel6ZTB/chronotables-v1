@@ -10,11 +10,12 @@
         dense
       >
         <q-tab name="inicio" label="Inicio" />
-        <q-tab name="configuracion" label="Configuración" />
+        <q-tab v-if="userStore.isAdmin" name="configuracion" label="Configuración" />
         <q-tab name="visualizacion" label="Visualización" />
-        <q-tab name="exportar" label="Exportar" />
+        <q-tab v-if="userStore.isAdmin" name="exportar" label="Exportar" />
       </q-tabs>
       <q-space />
+      <q-btn flat round dense icon="logout" class="text-white" @click="logout" />
     </q-toolbar>
 
     <!-- Sub-navbar solo en Configuración -->
@@ -55,6 +56,8 @@
 import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
+import { useUserStore } from 'src/stores/userStore'
+
 export default {
   name: 'NavBarComponent',
   setup() {
@@ -63,6 +66,10 @@ export default {
     const activeTab = ref('inicio')
     const activeConfigTab = ref('materias')
     const activeVisualTab = ref('general')
+    const userStore = useUserStore()
+    const logout = () => {
+      userStore.logout() // <-- si tienes un método definido en el store
+    }
 
     // Sincroniza tab principal y subtab con la ruta
     watch(
@@ -113,6 +120,8 @@ export default {
       onTabChange,
       goConfigSubtab,
       goVisualSubtab,
+      userStore,
+      logout,
     }
   },
 }

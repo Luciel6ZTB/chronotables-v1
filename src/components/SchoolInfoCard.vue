@@ -1,48 +1,13 @@
 <script setup>
-import { ref, reactive, watch, computed } from 'vue'
+import { ref } from 'vue'
+import { schoolStore } from 'src/stores/useSchoolStore.js'
 import { generateSchoolInfoPDF } from 'src/utils/pdfUtils.js'
 
-const schoolStore = (() => {
-  let initial = {
-    institution: '',
-    period: '',
-    campus: '',
-    semestre: 'Cuarto',
-    grupo: '402B',
-    turno: 'matutino',
-  }
-  try {
-    const fromStorage = window.localStorage.getItem('school-info')
-    if (fromStorage) initial = JSON.parse(fromStorage)
-  } catch (e) {
-    console.error('Error al cargar school-info de localStorage:', e)
-  }
-  const data = reactive({ ...initial })
-  watch(
-    data,
-    (val) => {
-      window.localStorage.setItem('school-info', JSON.stringify(val))
-    },
-    { deep: true },
-  )
-  return data
-})()
-
-// Usamos computed para asegurar que siempre tengamos todos los campos
-const allSchoolData = computed(() => ({
-  institution: schoolStore.institution,
-  period: schoolStore.period,
-  campus: schoolStore.campus,
-  semestre: schoolStore.semestre,
-  grupo: schoolStore.grupo,
-  turno: schoolStore.turno,
-}))
-
 const isEditing = ref(false)
-const localData = ref({ ...allSchoolData.value })
+const localData = ref({ ...schoolStore })
 
 function startEdit() {
-  localData.value = { ...allSchoolData.value }
+  localData.value = { ...schoolStore }
   isEditing.value = true
 }
 
@@ -51,20 +16,22 @@ function saveEdit() {
   isEditing.value = false
 }
 
+function cancelEdit() {
+  isEditing.value = false
+}
+
 function viewPDF() {
-  // Pasamos los datos actuales (editados o no)
-  const dataToExport = isEditing.value ? localData.value : allSchoolData.value
-  console.log('Datos enviados a PDF:', dataToExport) // Para depuración
+  // Pasas la data actual (ya sea editando o guardada)
+  const dataToExport = isEditing.value ? localData.value : schoolStore
   generateSchoolInfoPDF(dataToExport)
 }
 </script>
+
 <template>
   <q-card class="school-info-card q-pa-lg full-height-card">
     <h2 class="text-h4 text-weight-bold q-mb-md">Mi escuela</h2>
+    <p class="text-body1 q-mb-xl">Maneja toda la información relacionada a tu institución.</p>
 
-    <p class="text-body1 q-mb-lg">Maneja toda la información relacionada a tu institución.</p>
-
-    <!-- School Details -->
     <div class="school-details q-mb-xl">
       <div class="row q-mb-md items-center">
         <div class="col-4 text-weight-bold text-h6">Institución:</div>
@@ -72,8 +39,6 @@ function viewPDF() {
           <q-input
             v-model="localData.institution"
             dense
-            autofocus
-            :input-class="'text-h6'"
             outlined
             placeholder="Nombre de la institución"
             :disable="!isEditing"
@@ -86,8 +51,6 @@ function viewPDF() {
           <q-input
             v-model="localData.period"
             dense
-            autofocus
-            :input-class="'text-h6'"
             outlined
             placeholder="Período escolar"
             :disable="!isEditing"
@@ -100,8 +63,6 @@ function viewPDF() {
           <q-input
             v-model="localData.campus"
             dense
-            autofocus
-            :input-class="'text-h6'"
             outlined
             placeholder="Plantel"
             :disable="!isEditing"
@@ -110,7 +71,6 @@ function viewPDF() {
       </div>
     </div>
 
-    <!-- Bottom Action Buttons -->
     <div class="buttons-container">
       <div class="row q-gutter-md justify-end">
         <q-btn

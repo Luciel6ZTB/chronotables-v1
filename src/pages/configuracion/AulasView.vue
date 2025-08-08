@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useAulasStore } from 'src/stores/aulasStore'
+import { useAulaStore } from 'src/stores/aulasStore'
 import ActionCards from 'components/ActionCards.vue'
 import ConfigRoomCard from 'components/ConfigRoomCard.vue'
 import ConfigFormRoom from 'components/forms/ConfigFormRoom.vue'
@@ -11,7 +11,7 @@ const showForm = ref(false)
 const editingAula = ref(null)
 const showDeleteWarning = ref(false)
 
-const storeAulas = useAulasStore()
+const storeAulas = useAulaStore()
 const aulas = computed(() => storeAulas.aulas)
 
 onMounted(() => {

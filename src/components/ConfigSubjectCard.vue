@@ -13,14 +13,22 @@ const itemsPerPage = 8
 
 // Opciones del filtro
 const grades = ['Todos', 'Primer', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto']
-
-// Materias filtradas por semestre
+const gradeToNumber = {
+  Todos: null,
+  Primer: 1,
+  Segundo: 2,
+  Tercero: 3,
+  Cuarto: 4,
+  Quinto: 5,
+  Sexto: 6,
+}
 const filteredMaterias = computed(() => {
   if (selectedGrade.value === 'Todos') return props.materias
-  return props.materias.filter((materia) => materia.semestre === selectedGrade.value)
+
+  const semesterNumber = gradeToNumber[selectedGrade.value]
+  return props.materias.filter((materia) => materia.semestre === semesterNumber)
 })
 
-// Materias paginadas
 const paginatedMaterias = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
   const end = start + itemsPerPage

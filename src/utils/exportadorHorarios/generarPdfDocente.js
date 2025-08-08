@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useEstructuraHorarioDocente } from './estructuraHorarioDocente'
+import { schoolStore } from 'src/stores/useSchoolStore'
 
 export async function generarPdfDocentes() {
   try {
@@ -26,11 +27,25 @@ export async function generarPdfDocentes() {
     Object.entries(horariosProfesores).forEach(([nombreDocente, datos], index) => {
       if (index > 0) doc.addPage('a4', 'portrait')
 
-      // Título mejorado
-      doc.setFontSize(12)
+      // Línea 1: Escuela (centro)
+      doc.setFontSize(14)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 0, 0) // Negro para el título
-      doc.text(`Horario: ${nombreDocente}`, 105, 15, { align: 'center' })
+      doc.text(schoolStore.institution, 105, 15, { align: 'center' })
+
+      // Línea 2: Plantel (centro)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(schoolStore.campus, 105, 20, { align: 'center' })
+
+      // Línea 1 derecha: Periodo
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.text(schoolStore.period, 190, 25, { align: 'right' })
+
+      // Línea 1 izquierda: Horario: docente
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Horario: ${nombreDocente}`, 15, 25, { align: 'left' })
 
       const headers = ['Hora', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
       const body = []
@@ -80,7 +95,7 @@ export async function generarPdfDocentes() {
       autoTable(doc, {
         head: [headers],
         body: body,
-        startY: 20,
+        startY: 35,
         margin: { left: 15, right: 15 }, // Márgenes laterales pequeños
         tableWidth: 'auto', // Ocupa todo el ancho disponible
         styles: styles,

@@ -160,7 +160,7 @@ async function createWindow() {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    icon: path.resolve(currentDir, 'icons/bear_icon.png'), // tray icon
+    icon: path.resolve(currentDir, 'icons/bee_icon.ico'), // tray icon
     width: 1280,
     height: 720,
     title: 'ChronoTables - ITACE',
@@ -186,7 +186,6 @@ async function createWindow() {
     await mainWindow.loadFile('index.html')
   }
 
-  /*
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
     mainWindow.webContents.openDevTools()
@@ -196,13 +195,6 @@ async function createWindow() {
       mainWindow.webContents.closeDevTools()
     })
   }
-*/
-
-  mainWindow.webContents.openDevTools({ mode: 'detach' }) // o 'undocked', si prefieres
-
-  mainWindow.webContents.on('devtools-opened', () => {
-    mainWindow.focus()
-  })
 
   mainWindow.setMenu(null)
 
